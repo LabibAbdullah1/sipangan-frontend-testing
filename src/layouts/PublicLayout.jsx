@@ -21,7 +21,7 @@ const PublicLayout = () => {
         <div
           className="absolute inset-0 opacity-[0.15]"
           style={{
-            backgroundImage: `radial-gradient(#ffffff 0.5px, transparent 0.5px)`,
+            backgroundImage: `radial-gradient(#ffffff 0.5px, transparent 1.2px)`,
             backgroundSize: '30px 30px'
           }}
         ></div>

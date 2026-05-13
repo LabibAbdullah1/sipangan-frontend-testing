@@ -56,7 +56,7 @@ const MapComponent = () => {
             // Check various possible name fields from backend
             const regName = (p.region || p.name || p.region_name || '').toLowerCase();
             const featName = name?.toLowerCase() || '';
-            
+
             return regName.includes(featName) || featName.includes(regName);
           });
 
@@ -82,7 +82,7 @@ const MapComponent = () => {
           const nameB = (b.properties.name || b.properties.NAME || '').toUpperCase();
           const isKotaA = nameA.includes('KOTA');
           const isKotaB = nameB.includes('KOTA');
-          
+
           if (isKotaA && !isKotaB) return 1;
           if (!isKotaA && isKotaB) return -1;
           return 0;
@@ -143,15 +143,15 @@ const MapComponent = () => {
   return (
     <div className="w-full flex flex-col gap-6 relative pb-12">
       {/* Premium Header */}
-      <MapHeader 
-        selectedCommodity={selectedCommodity} 
-        onCommodityChange={handleCommodityChange} 
+      <MapHeader
+        selectedCommodity={selectedCommodity}
+        onCommodityChange={handleCommodityChange}
       />
 
       <div className="flex flex-col lg:flex-row gap-6 relative lg:h-[calc(100vh-14rem)] lg:min-h-[600px]">
         {/* Main Map Visualizer */}
         <div className={`transition-all duration-500 ease-in-out ${selectedRegion ? 'lg:flex-[1.5]' : 'flex-1'} h-[400px] lg:h-full`}>
-          <MapVisualizer 
+          <MapVisualizer
             geoData={enrichedGeoData}
             selectedRegion={selectedRegion}
             onRegionClick={handleRegionClick}
@@ -165,7 +165,7 @@ const MapComponent = () => {
 
           {selectedRegion ? (
             <div className="h-full animate-in slide-in-from-right duration-500 flex flex-col overflow-hidden">
-              <PriceSidebar 
+              <PriceSidebar
                 region={selectedRegion}
                 status={regionList.find(r => r.name === selectedRegion)?.status}
                 prices={regionPrices}
@@ -176,7 +176,7 @@ const MapComponent = () => {
             </div>
           ) : (
             <div className="h-full flex flex-col overflow-hidden">
-              <RegionList 
+              <RegionList
                 regions={regionList}
                 selectedCommodity={selectedCommodity}
                 onRegionClick={handleRegionClick}
