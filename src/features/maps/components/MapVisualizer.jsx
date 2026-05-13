@@ -8,6 +8,8 @@ const MapController = ({ selectedRegion, geoData }) => {
   const map = useMap();
   
   useEffect(() => {
+    const isMobile = window.innerWidth < 1024;
+    
     if (selectedRegion && geoData) {
       const feature = geoData.features.find(f => 
         (f.properties.name || f.properties.NAME) === selectedRegion
@@ -15,15 +17,23 @@ const MapController = ({ selectedRegion, geoData }) => {
       
       if (feature) {
         const layer = L.geoJSON(feature);
-        map.flyToBounds(layer.getBounds(), { padding: [100, 100], duration: 1.5 });
+        // Significantly reduced zoom and increased padding for better mobile overview
+        map.flyToBounds(layer.getBounds(), { 
+          padding: isMobile ? [80, 80] : [150, 150], 
+          duration: 1.5,
+          maxZoom: 9 
+        });
       }
     } else if (!selectedRegion) {
-      map.flyTo([-7.536, 112.238], 8, { duration: 1.5 });
+      const defaultZoom = isMobile ? 7 : 8;
+      map.flyTo([-7.536, 112.238], defaultZoom, { duration: 1.5 });
     }
   }, [selectedRegion, geoData, map]);
   
   return null;
 };
+
+
 
 
 const MapVisualizer = ({ geoData, selectedRegion, onRegionClick }) => {
