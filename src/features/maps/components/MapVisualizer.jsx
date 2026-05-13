@@ -1,7 +1,30 @@
-import React from 'react';
-import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
+import React, { useEffect } from 'react';
+import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import MapLegend from './MapLegend';
+
+const MapController = ({ selectedRegion, geoData }) => {
+  const map = useMap();
+  
+  useEffect(() => {
+    if (selectedRegion && geoData) {
+      const feature = geoData.features.find(f => 
+        (f.properties.name || f.properties.NAME) === selectedRegion
+      );
+      
+      if (feature) {
+        const layer = L.geoJSON(feature);
+        map.flyToBounds(layer.getBounds(), { padding: [100, 100], duration: 1.5 });
+      }
+    } else if (!selectedRegion) {
+      map.flyTo([-7.536, 112.238], 8, { duration: 1.5 });
+    }
+  }, [selectedRegion, geoData, map]);
+  
+  return null;
+};
+
 
 const MapVisualizer = ({ geoData, selectedRegion, onRegionClick }) => {
   const getStatusColor = (status) => {
@@ -76,6 +99,8 @@ const MapVisualizer = ({ geoData, selectedRegion, onRegionClick }) => {
         style={{ height: '100%', width: '100%', background: '#020617' }}
         zoomControl={false}
       >
+        <MapController selectedRegion={selectedRegion} geoData={geoData} />
+
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'

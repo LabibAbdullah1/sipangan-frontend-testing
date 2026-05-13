@@ -8,12 +8,14 @@ import {
 const PriceSidebar = ({ region, prices, isLoading, onClose }) => {
   if (!region) return null;
 
-  const latestPrice = prices.length > 0 ? prices[prices.length - 4]?.price : 0; // -4 because of 3 prediction points
-  const lastActual = prices.findLast(p => !p.isPrediction);
+  const lastActual = [...prices].reverse().find(p => !p.isPrediction);
   const currentPrice = lastActual ? lastActual.price : 0;
+  
+  const firstPrediction = prices.find(p => p.isPrediction);
+  const predictedPrice = firstPrediction ? firstPrediction.price : 0;
 
   return (
-    <div className="fixed inset-y-0 right-0 w-full md:w-[450px] bg-gray-900/95 backdrop-blur-2xl border-l border-gray-800 shadow-[0_0_50px_rgba(0,0,0,0.5)] z-[2000] flex flex-col animate-in slide-in-from-right duration-500 ease-out">
+    <div className="w-full lg:w-[450px] bg-gray-900/40 backdrop-blur-xl border border-gray-800 rounded-3xl shadow-2xl flex flex-col animate-in slide-in-from-right duration-500 ease-out overflow-hidden h-full">
       {/* Header */}
       <div className="p-6 flex items-center justify-between border-b border-gray-800/50">
         <div>
@@ -34,15 +36,25 @@ const PriceSidebar = ({ region, prices, isLoading, onClose }) => {
 
       <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
         {isLoading ? (
-          <div className="h-full w-full flex flex-col items-center justify-center space-y-4">
-            <div className="h-10 w-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
-            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Analyzing Market Data...</p>
+          <div className="space-y-6 animate-pulse">
+            {/* Stats Grid Skeleton */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="h-24 bg-gray-800/30 rounded-2xl border border-gray-700/20"></div>
+              <div className="h-24 bg-gray-800/30 rounded-2xl border border-gray-700/20"></div>
+            </div>
+            {/* Chart Skeleton */}
+            <div className="space-y-4">
+              <div className="h-4 w-32 bg-gray-800/50 rounded"></div>
+              <div className="h-[320px] bg-gray-800/20 rounded-3xl border border-gray-800/50"></div>
+            </div>
+            {/* Info Card Skeleton */}
+            <div className="h-24 bg-gray-800/20 rounded-2xl border border-gray-700/10"></div>
           </div>
         ) : prices.length > 0 ? (
-          <>
+          <div className="space-y-6 animate-in fade-in duration-700">
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-5 bg-gray-800/30 rounded-2xl border border-gray-700/30 group hover:border-emerald-500/30 transition-all">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-5 bg-gray-800/20 rounded-2xl border border-gray-700/20 hover:border-emerald-500/30 transition-colors duration-300">
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Current Price</p>
                   <div className="p-1.5 bg-emerald-500/10 rounded-lg">
@@ -54,16 +66,26 @@ const PriceSidebar = ({ region, prices, isLoading, onClose }) => {
                   {new Intl.NumberFormat('id-ID').format(currentPrice)}
                 </p>
               </div>
-              <div className="p-5 bg-gray-800/30 rounded-2xl border border-gray-700/30 group hover:border-blue-500/30 transition-all">
+
+              <div className="p-5 bg-amber-500/5 rounded-2xl border border-amber-500/10 hover:border-amber-500/30 transition-colors duration-300">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Price Status</p>
-                  <div className="p-1.5 bg-blue-500/10 rounded-lg">
-                    <TrendingUp size={14} className="text-blue-500" />
+                  <p className="text-[10px] text-amber-500/60 uppercase font-black tracking-widest">Forecasted Price</p>
+                  <div className="p-1.5 bg-amber-500/10 rounded-lg">
+                    <TrendingUp size={14} className="text-amber-500" />
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-lg font-black text-white">STABLE</span>
+                  <p className="text-2xl font-black text-white">
+                    <span className="text-xs text-amber-500 mr-1">Rp</span>
+                    {new Intl.NumberFormat('id-ID').format(predictedPrice)}
+                  </p>
+                  {currentPrice > 0 && (
+                    <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-md ${predictedPrice >= currentPrice ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                      {predictedPrice >= currentPrice ? '+' : ''}{((predictedPrice - currentPrice) / currentPrice * 100).toFixed(1)}%
+                    </span>
+                  )}
                 </div>
+                <p className="text-[9px] text-gray-500 font-bold uppercase mt-1">Next Month Estimate</p>
               </div>
             </div>
 
@@ -74,20 +96,20 @@ const PriceSidebar = ({ region, prices, isLoading, onClose }) => {
                   <Calendar size={14} /> 12-Month Performance
                 </h4>
               </div>
-              <div className="h-[320px] w-full bg-gray-800/20 rounded-3xl p-4 border border-gray-800/50">
+              <div className="h-[320px] w-full bg-gray-800/10 rounded-3xl p-4 border border-gray-800/30">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={prices} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
                         <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                       </linearGradient>
                       <linearGradient id="colorPredict" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4}/>
+                        <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.2}/>
                         <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} opacity={0.5} />
                     <XAxis 
                       dataKey="date" 
                       stroke="#475569" 
@@ -122,20 +144,20 @@ const PriceSidebar = ({ region, prices, isLoading, onClose }) => {
                       type="monotone" 
                       dataKey="actualPrice" 
                       stroke="#10b981" 
-                      strokeWidth={4}
+                      strokeWidth={3}
                       fillOpacity={1} 
                       fill="url(#colorActual)" 
-                      animationDuration={1500}
+                      animationDuration={1000}
                     />
                     <Area 
                       type="monotone" 
                       dataKey="predictedPrice" 
                       stroke="#f59e0b" 
-                      strokeWidth={4}
-                      strokeDasharray="8 8"
+                      strokeWidth={3}
+                      strokeDasharray="6 6"
                       fillOpacity={1} 
                       fill="url(#colorPredict)" 
-                      animationDuration={1500}
+                      animationDuration={1000}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -146,17 +168,17 @@ const PriceSidebar = ({ region, prices, isLoading, onClose }) => {
             <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-5">
               <div className="flex gap-4">
                 <div className="mt-1">
-                  <Info className="text-emerald-500" size={20} />
+                  <Info className="text-emerald-500" size={18} />
                 </div>
                 <div>
                   <h5 className="text-sm font-black text-emerald-400 mb-1 tracking-tight">Supply Forecast</h5>
-                  <p className="text-xs text-gray-400 leading-relaxed font-medium">
+                  <p className="text-[11px] text-gray-500 leading-relaxed font-medium">
                     The market trend shows stability for the next 3 months. Local production is expected to meet demand with a projected price variance of <span className="text-emerald-400 font-bold">±2%</span>.
                   </p>
                 </div>
               </div>
             </div>
-          </>
+          </div>
         ) : (
           <div className="h-full w-full flex flex-col items-center justify-center text-center p-10 space-y-4">
             <div className="w-20 h-20 bg-gray-800/50 rounded-full flex items-center justify-center border border-gray-700/50">
