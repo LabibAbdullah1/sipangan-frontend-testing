@@ -5,8 +5,21 @@ import {
   ResponsiveContainer, AreaChart, Area
 } from 'recharts';
 
-const PriceSidebar = ({ region, prices, isLoading, onClose }) => {
+const PriceSidebar = ({ region, status, prices, isLoading, onClose }) => {
   if (!region) return null;
+
+  const getStatusColor = (s) => {
+    switch (s?.toLowerCase()) {
+      case 'aman':
+      case 'stabil': return { bg: 'bg-emerald-500/10', text: 'text-emerald-500', border: 'border-emerald-500/20' };
+      case 'waspada': return { bg: 'bg-amber-500/10', text: 'text-amber-500', border: 'border-amber-500/20' };
+      case 'kritis':
+      case 'bahaya': return { bg: 'bg-rose-500/10', text: 'text-rose-500', border: 'border-rose-500/20' };
+      default: return { bg: 'bg-blue-500/10', text: 'text-blue-500', border: 'border-blue-500/20' };
+    }
+  };
+
+  const statusStyle = getStatusColor(status);
 
   const lastActual = [...prices].reverse().find(p => !p.isPrediction);
   const currentPrice = lastActual ? lastActual.price : 0;
@@ -20,12 +33,16 @@ const PriceSidebar = ({ region, prices, isLoading, onClose }) => {
       <div className="p-6 flex items-center justify-between border-b border-gray-800/50">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 text-[9px] font-black uppercase tracking-widest rounded-md border border-emerald-500/20">
+            <span className="px-2 py-0.5 bg-white/5 text-gray-400 text-[9px] font-black uppercase tracking-widest rounded-md border border-white/10">
               Region Analytics
+            </span>
+            <span className={`px-2 py-0.5 ${statusStyle.bg} ${statusStyle.text} text-[9px] font-black uppercase tracking-widest rounded-md border ${statusStyle.border} animate-pulse`}>
+              Status: {status || 'Normal'}
             </span>
           </div>
           <h3 className="text-2xl font-black text-white tracking-tight">{region}</h3>
         </div>
+
         <button 
           onClick={onClose}
           className="p-3 bg-gray-800/50 hover:bg-gray-800 text-gray-400 hover:text-white rounded-2xl transition-all border border-gray-700/50 hover:border-gray-600"
@@ -53,7 +70,7 @@ const PriceSidebar = ({ region, prices, isLoading, onClose }) => {
         ) : prices.length > 0 ? (
           <div className="space-y-6 animate-in fade-in duration-700">
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className={`grid grid-cols-1 ${predictedPrice > 0 ? 'sm:grid-cols-2' : 'sm:grid-cols-1'} gap-4`}>
               <div className="p-5 bg-gray-800/20 rounded-2xl border border-gray-700/20 hover:border-emerald-500/30 transition-colors duration-300">
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Current Price</p>
@@ -67,27 +84,30 @@ const PriceSidebar = ({ region, prices, isLoading, onClose }) => {
                 </p>
               </div>
 
-              <div className="p-5 bg-amber-500/5 rounded-2xl border border-amber-500/10 hover:border-amber-500/30 transition-colors duration-300">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-[10px] text-amber-500/60 uppercase font-black tracking-widest">Forecasted Price</p>
-                  <div className="p-1.5 bg-amber-500/10 rounded-lg">
-                    <TrendingUp size={14} className="text-amber-500" />
+              {predictedPrice > 0 && (
+                <div className="p-5 bg-amber-500/5 rounded-2xl border border-amber-500/10 hover:border-amber-500/30 transition-colors duration-300">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-[10px] text-amber-500/60 uppercase font-black tracking-widest">Forecasted Price</p>
+                    <div className="p-1.5 bg-amber-500/10 rounded-lg">
+                      <TrendingUp size={14} className="text-amber-500" />
+                    </div>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-2xl font-black text-white">
+                      <span className="text-xs text-amber-500 mr-1">Rp</span>
+                      {new Intl.NumberFormat('id-ID').format(predictedPrice)}
+                    </p>
+                    {currentPrice > 0 && (
+                      <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-md ${predictedPrice >= currentPrice ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                        {predictedPrice >= currentPrice ? '+' : ''}{((predictedPrice - currentPrice) / currentPrice * 100).toFixed(1)}%
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[9px] text-gray-500 font-bold uppercase mt-1">Next Month Estimate</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-2xl font-black text-white">
-                    <span className="text-xs text-amber-500 mr-1">Rp</span>
-                    {new Intl.NumberFormat('id-ID').format(predictedPrice)}
-                  </p>
-                  {currentPrice > 0 && (
-                    <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-md ${predictedPrice >= currentPrice ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
-                      {predictedPrice >= currentPrice ? '+' : ''}{((predictedPrice - currentPrice) / currentPrice * 100).toFixed(1)}%
-                    </span>
-                  )}
-                </div>
-                <p className="text-[9px] text-gray-500 font-bold uppercase mt-1">Next Month Estimate</p>
-              </div>
+              )}
             </div>
+
 
             {/* Chart Section */}
             <div className="space-y-4">

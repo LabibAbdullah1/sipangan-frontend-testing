@@ -35,11 +35,14 @@ const MapController = ({ selectedRegion, geoData }) => {
     const isMobile = window.innerWidth < 1024;
     
     if (selectedRegion && geoData) {
-      const feature = geoData.features.find(f => 
-        (f.properties.name || f.properties.NAME) === selectedRegion
-      );
+      const feature = geoData.features.find(f => {
+        const name = f.properties.name || f.properties.NAME || '';
+        const fullName = f.properties.fullRegionName || '';
+        return name === selectedRegion || fullName === selectedRegion;
+      });
       
       if (feature) {
+
         const layer = L.geoJSON(feature);
         map.flyToBounds(layer.getBounds(), { 
           padding: isMobile ? [80, 80] : [150, 150], 
@@ -50,7 +53,9 @@ const MapController = ({ selectedRegion, geoData }) => {
     } else if (!selectedRegion) {
       const defaultZoom = isMobile ? 7 : 8;
       map.flyTo([-7.536, 112.238], defaultZoom, { duration: 1.5 });
+      map.closePopup();
     }
+
   }, [selectedRegion, geoData, map]);
   
   return null;
@@ -58,7 +63,29 @@ const MapController = ({ selectedRegion, geoData }) => {
 
 
 const MapVisualizer = ({ geoData, selectedRegion, onRegionClick }) => {
+  const geoJsonRef = React.useRef(null);
+
+  // Update styles and open popup manually when selectedRegion changes
+  useEffect(() => {
+    if (geoJsonRef.current) {
+      geoJsonRef.current.setStyle(mapStyle);
+      
+      if (selectedRegion) {
+        geoJsonRef.current.eachLayer((layer) => {
+          const name = layer.feature.properties.name || layer.feature.properties.NAME || '';
+          const fullName = layer.feature.properties.fullRegionName || '';
+          
+          if (name === selectedRegion || fullName === selectedRegion) {
+            layer.openPopup();
+          }
+        });
+      }
+    }
+  }, [selectedRegion]);
+
+
   const getStatusColor = (status) => {
+
     switch (status?.toLowerCase()) {
       case 'aman': 
       case 'stabil': return '#10b981';
@@ -138,8 +165,10 @@ const MapVisualizer = ({ geoData, selectedRegion, onRegionClick }) => {
         }
       },
       click: () => {
-        onRegionClick(name);
+        const fullRegionName = feature.properties.fullRegionName || name;
+        onRegionClick(fullRegionName);
       }
+
     });
   };
 
@@ -163,11 +192,16 @@ const MapVisualizer = ({ geoData, selectedRegion, onRegionClick }) => {
         
         {geoData && (
           <GeoJSON 
+            ref={geoJsonRef}
+            key={`geojson-${geoData.features.map(f => f.properties.status).join(',')}`}
             data={geoData} 
             style={mapStyle}
             onEachFeature={onEachFeature}
           />
         )}
+
+
+
       </MapContainer>
       
       {!selectedRegion && <MapLegend />}

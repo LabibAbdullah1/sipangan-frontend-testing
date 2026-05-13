@@ -9,12 +9,18 @@ const useRegionPrices = (commodity) => {
     try {
       setIsLoading(true);
       const response = await priceService.getOverview();
-      const data = response.data || response || [];
-      // Filter for the current commodity
-      const filtered = data.filter(item => 
-        item.commodity?.toLowerCase() === commodity?.toLowerCase()
-      );
+      // Handle both raw array and wrapped { data: [...] } structure
+      const rawData = response.data || response || [];
+      const dataArray = Array.isArray(rawData) ? rawData : (rawData.data || []);
+
+      // Filter for the current commodity (flexible matching)
+      const filtered = dataArray.filter(item => {
+        const itemComm = (item.commodity || item.commodity_name || '').toLowerCase();
+        const searchComm = (commodity || '').toLowerCase();
+        return itemComm.includes(searchComm) || searchComm.includes(itemComm);
+      });
       setOverviewData(filtered);
+
     } catch (err) {
       console.error('Failed to fetch price overview:', err);
     } finally {

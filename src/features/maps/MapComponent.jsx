@@ -25,15 +25,19 @@ const MapComponent = () => {
 
   const handleRegionClick = (regionName) => {
     setSelectedRegion(regionName);
-    fetchPriceHistory(regionName, selectedCommodity);
+    const currentData = regionList.find(r => r.name === regionName);
+    fetchPriceHistory(regionName, selectedCommodity, currentData);
   };
+
 
   const handleCommodityChange = (commodity) => {
     setSelectedCommodity(commodity);
     if (selectedRegion) {
-      fetchPriceHistory(selectedRegion, commodity);
+      const currentData = regionList.find(r => r.name === selectedRegion);
+      fetchPriceHistory(selectedRegion, commodity, currentData);
     }
   };
+
 
   const handleCloseSidebar = () => {
     setSelectedRegion(null);
@@ -49,19 +53,28 @@ const MapComponent = () => {
         .map(f => {
           const name = f.properties.name || f.properties.NAME;
           const priceData = overviewData.find(p => {
-            const regName = p.region?.toLowerCase() || '';
+            // Check various possible name fields from backend
+            const regName = (p.region || p.name || p.region_name || '').toLowerCase();
             const featName = name?.toLowerCase() || '';
+            
             return regName.includes(featName) || featName.includes(regName);
           });
+
 
           return {
             ...f,
             properties: {
               ...f.properties,
-              status: priceData?.status || 'aman',
-              price: priceData?.price
+              status: priceData?.status || priceData?.keadaan || 'aman',
+              price: priceData?.current_price || priceData?.price || priceData?.harga,
+              fullRegionName: priceData?.region || priceData?.name || priceData?.region_name || name,
+              fullCommodityName: priceData?.commodity || priceData?.commodity_name || selectedCommodity
             }
           };
+
+
+
+
         })
         .sort((a, b) => {
           // Put "KOTA" at the end so they are rendered on top of regencies
@@ -75,17 +88,24 @@ const MapComponent = () => {
           return 0;
         })
     };
-  }, [geoData, overviewData]);
+  }, [geoData, overviewData, selectedCommodity]);
 
 
   const regionList = React.useMemo(() => {
     if (!enrichedGeoData?.features) return [];
-    return enrichedGeoData.features.map(f => ({
-      name: f.properties.name || f.properties.NAME,
+    const allRegions = enrichedGeoData.features.map(f => ({
+      name: f.properties.fullRegionName || f.properties.name || f.properties.NAME,
+      commodity: f.properties.fullCommodityName || selectedCommodity,
       status: f.properties.status,
       price: f.properties.price
     }));
-  }, [enrichedGeoData]);
+
+    // Remove duplicates based on name
+    return allRegions.filter((v, i, a) => a.findIndex(t => t.name === v.name) === i);
+  }, [enrichedGeoData, selectedCommodity]);
+
+
+
 
   if (isMapLoading) {
     return (
@@ -147,10 +167,12 @@ const MapComponent = () => {
             <div className="h-full animate-in slide-in-from-right duration-500 flex flex-col overflow-hidden">
               <PriceSidebar 
                 region={selectedRegion}
+                status={regionList.find(r => r.name === selectedRegion)?.status}
                 prices={regionPrices}
                 isLoading={isPriceLoading}
                 onClose={handleCloseSidebar}
               />
+
             </div>
           ) : (
             <div className="h-full flex flex-col overflow-hidden">

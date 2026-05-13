@@ -5,19 +5,28 @@ const RegionList = ({ regions, onRegionClick, selectedCommodity }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredRegions = useMemo(() => {
+    if (!Array.isArray(regions)) return [];
+    
     return regions
-      .filter(r => r.name.toLowerCase().includes(searchTerm.toLowerCase()))
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .filter(r => {
+        const name = r?.name || '';
+        return name.toLowerCase().includes(searchTerm.toLowerCase().trim());
+      })
+      .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   }, [regions, searchTerm]);
+
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
-      case 'surplus': return 'text-emerald-500';
-      case 'deficit': return 'text-rose-500';
-      case 'alert': return 'text-amber-500';
+      case 'aman':
+      case 'stabil': return 'text-emerald-500';
+      case 'waspada': return 'text-amber-500';
+      case 'kritis':
+      case 'bahaya': return 'text-rose-500';
       default: return 'text-blue-500';
     }
   };
+
 
   return (
     <div className="w-full bg-gray-900/40 backdrop-blur-xl border border-gray-800 rounded-3xl shadow-2xl flex flex-col h-full overflow-hidden animate-in fade-in slide-in-from-right duration-700">
