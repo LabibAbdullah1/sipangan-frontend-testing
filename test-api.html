@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+    <style>
+        body { background: #0a0a0a; color: #fff; font-family: sans-serif; padding: 20px; }
+        pre { background: #111; padding: 15px; border: 1px solid #333; border-radius: 5px; overflow: auto; max-height: 400px; }
+        .success { color: #10b981; }
+        .error { color: #e11d48; }
+    </style>
+</head>
+<body>
+    <h1>SIPANGAN API Test</h1>
+    <div id="results">Testing...</div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api/v1';
+        const API_KEY = '0b11a00206aec4d1d86b8e36b664ebb1';
+
+        async function test() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+
+            const endpoints = [
+                '/commodities',
+                '/prices/overview',
+                '/maps',
+                '/alerts'
+            ];
+
+            for (const endpoint of endpoints) {
+                const section = document.createElement('div');
+                section.innerHTML = `<h3>Testing ${endpoint}...</h3>`;
+                resultsDiv.appendChild(section);
+
+                try {
+                    const response = await fetch(API_URL + endpoint, {
+                        headers: { 'x-api-key': API_KEY }
+                    });
+                    const data = await response.json();
+
+                    const pre = document.createElement('pre');
+                    if (response.ok) {
+                        pre.className = 'success';
+                        pre.innerText = JSON.stringify(data, null, 2);
+                        section.innerHTML += `<span class="success">✓ Success (${response.status})</span>`;
+                    } else {
+                        pre.className = 'error';
+                        pre.innerText = JSON.stringify(data, null, 2);
+                        section.innerHTML += `<span class="error">✗ Failed (${response.status})</span>`;
+                    }
+                    section.appendChild(pre);
+                } catch (err) {
+                    section.innerHTML += `<span class="error">✗ Error: ${err.message}</span>`;
+                }
+            }
+        }
+
+        test();
+    </script>
+</body>
+</html>
