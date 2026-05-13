@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { priceService } from '../../../api/services';
+import { priceService, predictionService } from '../../../api/services';
+
 
 const usePriceHistory = () => {
   const [regionPrices, setRegionPrices] = useState([]);
