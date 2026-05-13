@@ -7,6 +7,30 @@ import MapLegend from './MapLegend';
 const MapController = ({ selectedRegion, geoData }) => {
   const map = useMap();
   
+  // Initialize City Pane for Z-index control inside the correct context
+  useEffect(() => {
+    if (map && !map.getPane('cityPane')) {
+      const pane = map.createPane('cityPane');
+      pane.style.zIndex = 650;
+      pane.style.pointerEvents = 'none';
+    }
+  }, [map]);
+
+  useEffect(() => {
+    // Force Leaflet to recalculate its size after a small delay to handle responsive shifts
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 300);
+
+    const handleResize = () => map.invalidateSize();
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [map, selectedRegion]);
+
   useEffect(() => {
     const isMobile = window.innerWidth < 1024;
     
@@ -17,7 +41,6 @@ const MapController = ({ selectedRegion, geoData }) => {
       
       if (feature) {
         const layer = L.geoJSON(feature);
-        // Significantly reduced zoom and increased padding for better mobile overview
         map.flyToBounds(layer.getBounds(), { 
           padding: isMobile ? [80, 80] : [150, 150], 
           duration: 1.5,
@@ -34,49 +57,56 @@ const MapController = ({ selectedRegion, geoData }) => {
 };
 
 
-
-
 const MapVisualizer = ({ geoData, selectedRegion, onRegionClick }) => {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
-      case 'surplus': return '#10b981';
-      case 'deficit': return '#e11d48';
-      case 'stable': 
-      case 'normal': return '#3b82f6';
-      case 'alert': return '#f59e0b';
-      default: return '#475569';
+      case 'aman': 
+      case 'stabil': return '#10b981';
+      case 'waspada': return '#f59e0b';
+      case 'kritis': 
+      case 'bahaya': return '#e11d48';
+      default: return '#3b82f6';
     }
   };
 
   const mapStyle = (feature) => {
+    const name = (feature.properties.name || feature.properties.NAME || '').toUpperCase();
+    const isKota = name.includes('KOTA');
     const isSelected = selectedRegion === (feature.properties.name || feature.properties.NAME);
+    const statusColor = getStatusColor(feature.properties.status);
+    
     return {
-      color: isSelected ? '#fff' : '#0f172a',
-      weight: isSelected ? 3 : 1,
+      color: isSelected ? statusColor : '#0f172a',
+      weight: isSelected ? 4 : 1,
       opacity: 1,
-      fillColor: getStatusColor(feature.properties.status),
-      fillOpacity: isSelected ? 0.8 : 0.45,
+      fillColor: statusColor,
+      fillOpacity: isSelected ? 0.85 : 0.45,
+      pane: isKota ? 'cityPane' : 'overlayPane'
     };
   };
 
   const onEachFeature = (feature, layer) => {
     const name = feature.properties.name || feature.properties.NAME || 'Unknown Region';
-    const status = feature.properties.status || 'No Data';
+    const status = (feature.properties.status || 'NORMAL').toUpperCase();
     const statusColor = getStatusColor(status);
     
+    const nameUpper = name.toUpperCase();
+    if (nameUpper.includes('KOTA')) {
+      layer.options.pane = 'cityPane';
+    }
+
     layer.bindPopup(
       `<div class="p-2 min-w-[150px] bg-gray-900 text-white rounded-xl">
-        <div class="text-[9px] uppercase tracking-widest text-gray-400 font-black mb-1">Geographic Area</div>
-        <div class="text-lg font-black text-white mb-3 tracking-tight">${name}</div>
-        <div class="flex items-center justify-between items-center py-2 px-3 rounded-lg bg-white/5 border border-white/10">
-          <span class="text-[10px] font-bold text-gray-400 uppercase">Status</span>
-          <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded shadow-[0_0_10px_rgba(0,0,0,0.2)]" style="background-color: ${statusColor}; color: white">
-            ${status}
+        <div class="text-[9px] uppercase tracking-widest text-gray-400 font-black mb-1">Status Harga</div>
+        <div class="text-lg font-black text-white mb-1 tracking-tight">${name}</div>
+        <div class="inline-flex items-center px-2 py-0.5 rounded bg-white/5 border border-white/10 mb-3">
+          <span class="text-[9px] font-black uppercase tracking-tighter" style="color: ${statusColor}">
+            ● ${status}
           </span>
         </div>
-        <div class="mt-4 pt-3 border-t border-gray-800 text-[10px] text-emerald-400 font-black uppercase tracking-widest flex items-center gap-2">
+        <div class="mt-2 pt-2 border-t border-gray-800 text-[10px] text-emerald-400 font-black uppercase tracking-widest flex items-center gap-2">
           <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-          Analyze Trends
+          Cek Detail Harga
         </div>
       </div>`,
       { className: 'custom-popup', maxWidth: 300 }
@@ -86,13 +116,25 @@ const MapVisualizer = ({ geoData, selectedRegion, onRegionClick }) => {
       mouseover: (e) => {
         const l = e.target;
         if (selectedRegion !== name) {
-          l.setStyle({ fillOpacity: 0.7, weight: 2, color: '#fff' });
+          l.setStyle({ 
+            fillOpacity: 0.8, 
+            weight: 3, 
+            color: statusColor,
+            fillColor: statusColor
+          });
+          if (!nameUpper.includes('KOTA')) {
+            l.bringToFront();
+          }
         }
       },
       mouseout: (e) => {
         const l = e.target;
         if (selectedRegion !== name) {
-          l.setStyle({ fillOpacity: 0.45, weight: 1, color: '#0f172a' });
+          l.setStyle({ 
+            fillOpacity: 0.45, 
+            weight: 1, 
+            color: '#0f172a' 
+          });
         }
       },
       click: () => {
@@ -100,6 +142,9 @@ const MapVisualizer = ({ geoData, selectedRegion, onRegionClick }) => {
       }
     });
   };
+
+
+
 
   return (
     <div className="flex-1 w-full h-full relative rounded-3xl overflow-hidden border border-gray-800 shadow-2xl">

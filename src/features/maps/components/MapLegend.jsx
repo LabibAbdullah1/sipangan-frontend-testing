@@ -2,12 +2,13 @@ import React from 'react';
 
 const MapLegend = () => {
   const legendItems = [
-    { label: 'Surplus', color: '#10b981', desc: 'Sufficient Supply' },
-    { label: 'Normal', color: '#3b82f6', desc: 'Stable Condition' },
-    { label: 'Alert', color: '#f59e0b', desc: 'Potential Risk' },
-    { label: 'Deficit', color: '#e11d48', desc: 'Supply Shortage' },
-    { label: 'No Data', color: '#64748b', desc: 'Awaiting Update' }
+    { label: 'AMAN', color: '#10b981', desc: 'Harga Stabil' },
+    { label: 'NORMAL', color: '#3b82f6', desc: 'Sesuai Pasar' },
+    { label: 'WASPADA', color: '#f59e0b', desc: 'Tren Menaik' },
+    { label: 'KRITIS', color: '#e11d48', desc: 'Lonjakan Harga' },
+    { label: 'TANPA DATA', color: '#64748b', desc: 'Update Pending' }
   ];
+
 
   return (
     <div className="absolute bottom-6 right-6 z-[1000] bg-gray-900/80 backdrop-blur-md p-5 border border-gray-800/50 rounded-2xl shadow-2xl min-w-[180px]">

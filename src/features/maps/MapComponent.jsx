@@ -40,6 +40,53 @@ const MapComponent = () => {
     setRegionPrices([]);
   };
 
+  const enrichedGeoData = React.useMemo(() => {
+    if (!geoData || !overviewData) return geoData;
+
+    return {
+      ...geoData,
+      features: geoData.features
+        .map(f => {
+          const name = f.properties.name || f.properties.NAME;
+          const priceData = overviewData.find(p => {
+            const regName = p.region?.toLowerCase() || '';
+            const featName = name?.toLowerCase() || '';
+            return regName.includes(featName) || featName.includes(regName);
+          });
+
+          return {
+            ...f,
+            properties: {
+              ...f.properties,
+              status: priceData?.status || 'aman',
+              price: priceData?.price
+            }
+          };
+        })
+        .sort((a, b) => {
+          // Put "KOTA" at the end so they are rendered on top of regencies
+          const nameA = (a.properties.name || a.properties.NAME || '').toUpperCase();
+          const nameB = (b.properties.name || b.properties.NAME || '').toUpperCase();
+          const isKotaA = nameA.includes('KOTA');
+          const isKotaB = nameB.includes('KOTA');
+          
+          if (isKotaA && !isKotaB) return 1;
+          if (!isKotaA && isKotaB) return -1;
+          return 0;
+        })
+    };
+  }, [geoData, overviewData]);
+
+
+  const regionList = React.useMemo(() => {
+    if (!enrichedGeoData?.features) return [];
+    return enrichedGeoData.features.map(f => ({
+      name: f.properties.name || f.properties.NAME,
+      status: f.properties.status,
+      price: f.properties.price
+    }));
+  }, [enrichedGeoData]);
+
   if (isMapLoading) {
     return (
       <div className="w-full h-[600px] flex flex-col items-center justify-center bg-[#020617] border border-gray-800 rounded-3xl">
@@ -72,22 +119,6 @@ const MapComponent = () => {
     );
   }
 
-  const regionList = geoData?.features?.map(f => {
-    const name = f.properties.name || f.properties.NAME;
-    // Find price for this region in overview data
-    const priceData = overviewData.find(p => {
-      const regName = p.region?.toLowerCase() || '';
-      const featName = name?.toLowerCase() || '';
-      return regName.includes(featName) || featName.includes(regName);
-    });
-
-    return {
-      name,
-      status: f.properties.status,
-      price: priceData?.price
-    };
-  }) || [];
-
 
   return (
     <div className="w-full flex flex-col gap-6 relative pb-12">
@@ -101,11 +132,13 @@ const MapComponent = () => {
         {/* Main Map Visualizer */}
         <div className={`transition-all duration-500 ease-in-out ${selectedRegion ? 'lg:flex-[1.5]' : 'flex-1'} h-[400px] lg:h-full`}>
           <MapVisualizer 
-            geoData={geoData}
+            geoData={enrichedGeoData}
             selectedRegion={selectedRegion}
             onRegionClick={handleRegionClick}
           />
         </div>
+
+
 
         {/* Analytics Sidebar or Region List */}
         <div className="w-full lg:w-[450px] h-[500px] lg:h-full flex flex-col overflow-hidden">

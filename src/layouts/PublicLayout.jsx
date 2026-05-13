@@ -15,9 +15,9 @@ const PublicLayout = () => {
     <div className="min-h-screen bg-[#020617] text-gray-100 flex flex-col relative overflow-x-hidden">
       {/* Background Texture & Gradients */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(16,185,129,0.1),transparent_50%)]"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(59,130,246,0.05),transparent_40%)]"></div>
+
         <div
           className="absolute inset-0 opacity-[0.15]"
           style={{
