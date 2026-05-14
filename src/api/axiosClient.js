@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api/v1',
+  baseURL: import.meta.env.VITE_API_URL || '/api/v1/',
   headers: {
     'Content-Type': 'application/json',
     'x-api-key': import.meta.env.VITE_API_KEY || '',
@@ -31,9 +31,9 @@ axiosClient.interceptors.response.use(
         const response = await axios.put(
           `${axiosClient.defaults.baseURL}/auth/refresh`,
           { refreshToken },
-          { 
+          {
             headers: { 'x-api-key': import.meta.env.VITE_API_KEY || '' },
-            withCredentials: true 
+            withCredentials: true
           }
         );
 
