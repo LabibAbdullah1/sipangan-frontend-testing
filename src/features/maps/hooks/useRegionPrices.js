@@ -8,18 +8,15 @@ const useRegionPrices = (commodity) => {
   const fetchOverview = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await priceService.getOverview();
+      // Fetch data with commodity parameter if provided
+      const response = await priceService.getOverview({ commodity });
+      
       // Handle both raw array and wrapped { data: [...] } structure
       const rawData = response.data || response || [];
       const dataArray = Array.isArray(rawData) ? rawData : (rawData.data || []);
 
-      // Filter for the current commodity (flexible matching)
-      const filtered = dataArray.filter(item => {
-        const itemComm = (item.commodity || item.commodity_name || '').toLowerCase();
-        const searchComm = (commodity || '').toLowerCase();
-        return itemComm.includes(searchComm) || searchComm.includes(itemComm);
-      });
-      setOverviewData(filtered);
+      // With the new backend logic, dataArray is already filtered or aggregated correctly
+      setOverviewData(dataArray);
 
     } catch (err) {
       console.error('Failed to fetch price overview:', err);

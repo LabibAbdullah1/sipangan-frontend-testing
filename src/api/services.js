@@ -20,7 +20,7 @@ export const commodityService = {
 
 export const priceService = {
   getHistory: (params) => axiosClient.get('/prices', { params }),
-  getOverview: () => axiosClient.get('/prices/overview'),
+  getOverview: (params) => axiosClient.get('/prices/overview', { params }),
   create: (data) => axiosClient.post('/prices', data),
   update: (id, data) => axiosClient.put(`/prices/${id}`, data),
   delete: (id) => axiosClient.delete(`/prices/${id}`),

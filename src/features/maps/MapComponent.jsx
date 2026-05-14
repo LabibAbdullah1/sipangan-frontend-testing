@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import useMapData from './hooks/useMapData';
 import usePriceHistory from './hooks/usePriceHistory';
 import useRegionPrices from './hooks/useRegionPrices';
+import { commodityService } from '../../api/services';
 
 import MapHeader from './components/MapHeader';
 import MapVisualizer from './components/MapVisualizer';
@@ -12,6 +13,8 @@ import RegionList from './components/RegionList';
 const MapComponent = () => {
   const [selectedCommodity, setSelectedCommodity] = useState('Beras Medium');
   const [selectedRegion, setSelectedRegion] = useState(null);
+  const [selectedRange, setSelectedRange] = useState(12);
+  const [commodities, setCommodities] = useState([]);
 
   const { geoData, isLoading: isMapLoading, error: mapError } = useMapData();
   const {
@@ -23,10 +26,26 @@ const MapComponent = () => {
 
   const { overviewData } = useRegionPrices(selectedCommodity);
 
+  useEffect(() => {
+    const fetchCommodities = async () => {
+      try {
+        const response = await commodityService.getAll();
+        const data = response.data || [];
+        setCommodities(data);
+        if (data.length > 0 && !selectedCommodity) {
+          setSelectedCommodity(data[0].name);
+        }
+      } catch (error) {
+        console.error('Failed to fetch commodities:', error);
+      }
+    };
+    fetchCommodities();
+  }, []);
+
   const handleRegionClick = (regionName) => {
     setSelectedRegion(regionName);
     const currentData = regionList.find(r => r.name === regionName);
-    fetchPriceHistory(regionName, selectedCommodity, currentData);
+    fetchPriceHistory(regionName, selectedCommodity, currentData, selectedRange);
   };
 
 
@@ -34,7 +53,15 @@ const MapComponent = () => {
     setSelectedCommodity(commodity);
     if (selectedRegion) {
       const currentData = regionList.find(r => r.name === selectedRegion);
-      fetchPriceHistory(selectedRegion, commodity, currentData);
+      fetchPriceHistory(selectedRegion, commodity, currentData, selectedRange);
+    }
+  };
+
+  const handleRangeChange = (range) => {
+    setSelectedRange(range);
+    if (selectedRegion) {
+      const currentData = regionList.find(r => r.name === selectedRegion);
+      fetchPriceHistory(selectedRegion, selectedCommodity, currentData, range);
     }
   };
 
@@ -53,11 +80,24 @@ const MapComponent = () => {
         .map(f => {
           const name = f.properties.name || f.properties.NAME;
           const priceData = overviewData.find(p => {
-            // Check various possible name fields from backend
-            const regName = (p.region || p.name || p.region_name || '').toLowerCase();
-            const featName = name?.toLowerCase() || '';
+            const rawRegName = (p.region || p.name || p.region_name || '').toLowerCase();
+            const rawFeatName = (name || '').toLowerCase();
 
-            return regName.includes(featName) || featName.includes(regName);
+            // Function to strip prefixes and dots (v2)
+            const clean = (s) => s.replace(/kabupaten|kota|kab|city|kab\.|kota\./g, '').replace(/\./g, '').trim();
+            const cleanReg = clean(rawRegName);
+            const cleanFeat = clean(rawFeatName);
+
+            // 1. Basic matching of core names
+            const isBaseMatch = cleanReg.includes(cleanFeat) || cleanFeat.includes(cleanReg);
+            if (!isBaseMatch) return false;
+
+            // 2. Strict Type Check (Kota vs Kabupaten)
+            // If one is clearly a Kota and the other is clearly NOT, it's a mismatch
+            const isRegKota = rawRegName.includes('kota');
+            const isFeatKota = rawFeatName.includes('kota');
+
+            return isRegKota === isFeatKota;
           });
 
 
@@ -141,14 +181,15 @@ const MapComponent = () => {
 
 
   return (
-    <div className="w-full flex flex-col gap-6 relative pb-12">
+    <div className="w-full lg:h-full flex flex-col gap-4 relative lg:overflow-hidden">
       {/* Premium Header */}
       <MapHeader
         selectedCommodity={selectedCommodity}
         onCommodityChange={handleCommodityChange}
+        commodities={commodities}
       />
 
-      <div className="flex flex-col lg:flex-row gap-6 relative lg:h-[calc(100vh-14rem)] lg:min-h-[600px]">
+      <div className="flex-1 flex flex-col lg:flex-row gap-4 relative min-h-0">
         {/* Main Map Visualizer */}
         <div className={`transition-all duration-500 ease-in-out ${selectedRegion ? 'lg:flex-[1.5]' : 'flex-1'} h-[400px] lg:h-full`}>
           <MapVisualizer
@@ -170,6 +211,8 @@ const MapComponent = () => {
                 status={regionList.find(r => r.name === selectedRegion)?.status}
                 prices={regionPrices}
                 isLoading={isPriceLoading}
+                selectedRange={selectedRange}
+                onRangeChange={handleRangeChange}
                 onClose={handleCloseSidebar}
               />
 

@@ -7,7 +7,7 @@ const usePriceHistory = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchPriceHistory = useCallback(async (regionName, commodity, currentPriceData = null) => {
+  const fetchPriceHistory = useCallback(async (regionName, commodity, currentPriceData = null, limit = 12) => {
     if (!regionName) return;
 
     try {
@@ -18,12 +18,11 @@ const usePriceHistory = () => {
       const apiCommodityName = commodity.trim();
 
       // Fetch both history and prediction in parallel
+      // We fetch 'limit' points from the history
       const [historyResponse, predictionResponse] = await Promise.all([
-        priceService.getHistory({ commodity: apiCommodityName, region: apiRegionName }),
+        priceService.getHistory({ commodity: apiCommodityName, region: apiRegionName, limit }),
         predictionService.getPrediction(apiCommodityName, apiRegionName).catch(() => null)
       ]);
-
-
 
       // Process History
       const histData = historyResponse?.data || historyResponse || [];
@@ -36,9 +35,9 @@ const usePriceHistory = () => {
         date: d.date || d.created_at || d.tanggal
       })).filter(d => d.price && d.date);
 
+      // Sort ascending for the chart
       let sortedData = [...processedHistory]
-        .sort((a, b) => new Date(a.date) - new Date(b.date))
-        .slice(-12);
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
 
 
       // FALLBACK: If history is empty but we have currentPriceData from overview

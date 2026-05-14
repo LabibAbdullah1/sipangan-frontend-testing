@@ -43,6 +43,7 @@ const App = () => {
         >
           <Route index element={<Navigate to="/admin/manage" replace />} />
           <Route path="manage" element={<ManageData />} />
+          <Route path="map" element={<MapViewPage />} />
         </Route>
 
         {/* Fallback */}

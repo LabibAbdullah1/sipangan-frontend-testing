@@ -49,10 +49,25 @@ const PublicLayout = () => {
             </Link>
           </div>
 
-          <Link to="/admin/login" className="hidden md:flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-xs font-black uppercase tracking-widest text-gray-300 hover:text-white rounded-xl transition-all border border-white/5 hover:border-white/10">
-            <Shield size={14} className="text-emerald-500" />
-            Admin Access
-          </Link>
+          <div className="flex items-center gap-4">
+            {localStorage.getItem('accessToken') ? (
+              <Link 
+                to="/admin/manage" 
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-emerald-500/20 hover:scale-[1.05]"
+              >
+                <Shield size={14} />
+                Panel Admin
+              </Link>
+            ) : (
+              <Link 
+                to="/admin/login" 
+                className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-xs font-black uppercase tracking-widest text-gray-300 hover:text-white rounded-xl transition-all border border-white/5 hover:border-white/10"
+              >
+                <Shield size={14} className="text-emerald-500" />
+                Admin Access
+              </Link>
+            )}
+          </div>
 
         </div>
       </header>
@@ -103,14 +118,25 @@ const PublicLayout = () => {
         </div>
 
         <div className="p-4 border-t border-white/5 bg-gray-900/20">
-          <Link
-            to="/admin/login"
-            onClick={() => setIsSidebarOpen(false)}
-            className="flex items-center gap-3 px-4 py-4 bg-emerald-500 rounded-2xl text-white shadow-lg shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
-          >
-            <Shield size={18} />
-            <span className="text-sm font-black uppercase tracking-wider">Admin Portal</span>
-          </Link>
+          {localStorage.getItem('accessToken') ? (
+            <Link
+              to="/admin/manage"
+              onClick={() => setIsSidebarOpen(false)}
+              className="flex items-center gap-3 px-4 py-4 bg-emerald-500 text-white rounded-2xl shadow-lg shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            >
+              <Shield size={18} />
+              <span className="text-sm font-black uppercase tracking-wider">Ke Panel Admin</span>
+            </Link>
+          ) : (
+            <Link
+              to="/admin/login"
+              onClick={() => setIsSidebarOpen(false)}
+              className="flex items-center gap-3 px-4 py-4 bg-white/5 border border-white/10 text-white rounded-2xl shadow-lg hover:bg-white/10 transition-all"
+            >
+              <Shield size={18} className="text-emerald-500" />
+              <span className="text-sm font-black uppercase tracking-wider">Admin Portal</span>
+            </Link>
+          )}
         </div>
       </aside>
 

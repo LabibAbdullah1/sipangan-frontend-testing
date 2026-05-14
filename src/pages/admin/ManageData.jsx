@@ -1,99 +1,134 @@
 import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Database, Package, TrendingUp, ChevronRight } from 'lucide-react';
 import { commodityService } from '../../api/services';
-import { Plus } from 'lucide-react';
+import CommodityTable from './components/CommodityTable';
+import PriceTable from './components/PriceTable';
 
 const ManageData = () => {
+  const [activeTab, setActiveTab] = useState('prices'); // default to prices
+  const [direction, setDirection] = useState(0); // 1 for right, -1 for left
   const [commodities, setCommodities] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const response = await commodityService.getAll();
-        setCommodities(response.data || []);
-      } catch (error) {
-        console.error('Failed to load commodities:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+  const tabs = [
+    { id: 'prices', label: 'Price Records', icon: TrendingUp, color: 'text-blue-500' },
+    { id: 'commodities', label: 'Commodity Catalog', icon: Package, color: 'text-emerald-500' },
+  ];
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this commodity?')) {
-      try {
-        await commodityService.delete(id);
-        setCommodities(commodities.filter(item => item.id !== id));
-      } catch (error) {
-        console.error('Delete failed:', error);
-        alert('Failed to delete commodity.');
-      }
+  const handleTabChange = (tabId) => {
+    const currentIndex = tabs.findIndex(t => t.id === activeTab);
+    const newIndex = tabs.findIndex(t => t.id === tabId);
+    setDirection(newIndex > currentIndex ? 1 : -1);
+    setActiveTab(tabId);
+  };
+
+  const fetchCommodities = async () => {
+    setLoading(true);
+    try {
+      const response = await commodityService.getAll();
+      setCommodities(response.data || []);
+    } catch (error) {
+      console.error('Failed to load commodities:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchCommodities();
+  }, []);
+
+  const variants = {
+    enter: (direction) => ({
+      x: direction > 0 ? 50 : -50,
+      opacity: 0,
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1,
+    },
+    exit: (direction) => ({
+      zIndex: 0,
+      x: direction < 0 ? 50 : -50,
+      opacity: 0,
+    }),
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Manage Commodities</h1>
-          <p className="text-sm text-gray-400 mt-1">Add, edit, or remove commodity data across regions.</p>
+    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom duration-700">
+      {/* Page Header */}
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2 text-xs font-black text-gray-500 uppercase tracking-[0.3em]">
+          Admin <ChevronRight size={12} /> Data Management
         </div>
-        <button className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-md font-medium transition-colors shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-          <Plus size={18} /> New Record
-        </button>
+        <h1 className="text-4xl font-black text-white tracking-tight flex items-center gap-3">
+          <Database className="text-emerald-500" size={32} />
+          Kelola Data Pangan
+        </h1>
+        <p className="text-gray-400 font-medium">
+          Manage commodity inventory and maintain historical price data across East Java.
+        </p>
       </div>
 
-      <div className="border border-gray-800 rounded-md overflow-hidden bg-[#0a0a0a]">
-        <table className="w-full text-sm text-left">
-          <thead className="text-xs text-gray-400 uppercase bg-[#0f0f0f] border-b border-gray-800">
-            <tr>
-              <th className="px-6 py-4 font-medium">ID</th>
-              <th className="px-6 py-4 font-medium">Commodity</th>
-              <th className="px-6 py-4 font-medium">Code</th>
-              <th className="px-6 py-4 font-medium text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan="4" className="px-6 py-8 text-center text-gray-500">
-                  <div className="flex flex-col items-center justify-center space-y-3">
-                    <div className="h-6 w-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-                    <span>Loading records...</span>
-                  </div>
-                </td>
-              </tr>
-            ) : commodities?.length > 0 ? (
-              commodities.map((item) => (
-                <tr key={item.id} className="border-b border-gray-800 last:border-0 hover:bg-gray-800/30">
-                  <td className="px-6 py-4 text-gray-400 font-mono text-xs">{item.id}</td>
-                  <td className="px-6 py-4 text-white font-medium">{item.name}</td>
-                  <td className="px-6 py-4 text-gray-400">{item.code || 'N/A'}</td>
-                  <td className="px-6 py-4 text-right">
-                    <button className="text-emerald-500 hover:text-emerald-400 text-xs font-medium mr-4 transition-colors">Edit</button>
-                    <button 
-                      onClick={() => handleDelete(item.id)}
-                      className="text-crimson-500 hover:text-crimson-400 text-xs font-medium transition-colors"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))
+      {/* Tabs Navigation */}
+      <div className="flex items-center gap-2 p-1 bg-white/5 backdrop-blur-xl border border-white/5 rounded-2xl w-fit">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => handleTabChange(tab.id)}
+              className={`
+                relative flex items-center gap-3 px-6 py-3 rounded-xl text-sm font-bold transition-all
+                ${isActive ? 'text-white' : 'text-gray-500 hover:text-gray-300'}
+              `}
+            >
+              {isActive && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute inset-0 bg-gray-800 border border-gray-700 rounded-xl"
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                />
+              )}
+              <span className="relative z-10 flex items-center gap-3">
+                <tab.icon size={22} className={isActive ? tab.color : 'text-current'} />
+                {tab.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Tab Content */}
+      <div className="relative min-h-[400px] overflow-hidden">
+        <AnimatePresence mode="wait" custom={direction}>
+          <motion.div
+            key={activeTab}
+            custom={direction}
+            variants={variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{
+              x: { type: "spring", stiffness: 300, damping: 30 },
+              opacity: { duration: 0.2 }
+            }}
+          >
+            {activeTab === 'commodities' ? (
+              <CommodityTable 
+                commodities={commodities} 
+                loading={loading} 
+                onRefresh={fetchCommodities} 
+              />
             ) : (
-              <tr>
-                <td colSpan="4" className="px-6 py-12 text-center text-gray-500">
-                  <div className="max-w-xs mx-auto">
-                    <p className="mb-2 text-gray-400">No commodity records found.</p>
-                    <p className="text-xs">Click "New Record" to add data.</p>
-                  </div>
-                </td>
-              </tr>
+              <PriceTable 
+                commodities={commodities} 
+              />
             )}
-          </tbody>
-        </table>
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );

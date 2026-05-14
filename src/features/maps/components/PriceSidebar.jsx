@@ -5,7 +5,7 @@ import {
   ResponsiveContainer, AreaChart, Area
 } from 'recharts';
 
-const PriceSidebar = ({ region, status, prices, isLoading, onClose }) => {
+const PriceSidebar = ({ region, status, prices, isLoading, selectedRange, onRangeChange, onClose }) => {
   if (!region) return null;
 
   const getStatusColor = (s) => {
@@ -112,9 +112,34 @@ const PriceSidebar = ({ region, status, prices, isLoading, onClose }) => {
             {/* Chart Section */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                  <Calendar size={14} /> 12-Month Performance
-                </h4>
+                <div>
+                  <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                    <Calendar size={14} /> {selectedRange} Data Points
+                  </h4>
+                  {prices.length > 0 && (
+                    <p className="text-[10px] text-gray-500 font-bold mt-0.5 ml-6">
+                      Period: {new Date(prices[0].date).getFullYear()} — {new Date(prices[prices.length - 1].date).getFullYear()}
+                    </p>
+                  )}
+                </div>
+                
+                {/* Range Selector */}
+                <div className="flex bg-gray-800/50 p-1 rounded-xl border border-gray-700/50">
+                  {[12, 24, 120].map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => onRangeChange(r)}
+                      className={`
+                        px-3 py-1 rounded-lg text-[10px] font-black transition-all
+                        ${selectedRange === r 
+                          ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' 
+                          : 'text-gray-500 hover:text-gray-300'}
+                      `}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="h-[320px] w-full bg-gray-800/10 rounded-3xl p-4 border border-gray-800/30">
                 <ResponsiveContainer width="100%" height="100%">
@@ -139,7 +164,7 @@ const PriceSidebar = ({ region, status, prices, isLoading, onClose }) => {
                       tickLine={false}
                       tickFormatter={(str) => {
                         const date = new Date(str);
-                        return date.toLocaleDateString('id-ID', { month: 'short' });
+                        return date.toLocaleDateString('id-ID', { month: 'short', year: '2-digit' });
                       }}
                     />
                     <YAxis 

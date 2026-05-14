@@ -122,21 +122,53 @@ const MapVisualizer = ({ geoData, selectedRegion, onRegionClick }) => {
       layer.options.pane = 'cityPane';
     }
 
+    const price = feature.properties.price || 0;
+    const trend = feature.properties.trend || 'stable';
+    const lastUpdate = feature.properties.lastUpdate || 'Just Now';
+    
+    const formattedPrice = new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0
+    }).format(price);
+
+    const trendIcon = trend === 'up' ? '↗' : trend === 'down' ? '↘' : '→';
+    const trendClass = trend === 'up' ? 'text-red-400' : trend === 'down' ? 'text-emerald-400' : 'text-blue-400';
+
     layer.bindPopup(
-      `<div class="p-2 min-w-[150px] bg-gray-900 text-white rounded-xl">
-        <div class="text-[9px] uppercase tracking-widest text-gray-400 font-black mb-1">Status Harga</div>
-        <div class="text-lg font-black text-white mb-1 tracking-tight">${name}</div>
-        <div class="inline-flex items-center px-2 py-0.5 rounded bg-white/5 border border-white/10 mb-3">
-          <span class="text-[9px] font-black uppercase tracking-tighter" style="color: ${statusColor}">
-            ● ${status}
-          </span>
-        </div>
-        <div class="mt-2 pt-2 border-t border-gray-800 text-[10px] text-emerald-400 font-black uppercase tracking-widest flex items-center gap-2">
-          <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-          Cek Detail Harga
+      `<div class="p-4 min-w-[220px] bg-gray-900/95 backdrop-blur-xl text-white rounded-2xl border border-white/10 shadow-2xl overflow-hidden relative">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 blur-3xl rounded-full -mr-12 -mt-12 pointer-events-none"></div>
+        
+        <div class="relative z-10">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-[8px] uppercase tracking-[0.2em] text-gray-500 font-black">Region Overview</span>
+            <span class="text-[8px] text-gray-600 font-bold">${lastUpdate}</span>
+          </div>
+
+          <div class="mb-4">
+            <h3 class="text-xl font-black text-white tracking-tight leading-none mb-1">${name}</h3>
+            <div class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${statusColor}"></span>
+              <span class="text-[9px] font-black uppercase tracking-widest" style="color: ${statusColor}">${status}</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
+            <div class="flex flex-col">
+              <span class="text-[8px] text-gray-500 font-black uppercase mb-1">Current Price</span>
+              <span class="text-sm font-black text-emerald-400">${formattedPrice}</span>
+            </div>
+            <div class="flex flex-col border-l border-white/10 pl-3">
+              <span class="text-[8px] text-gray-500 font-black uppercase mb-1">Trend</span>
+              <div class="flex items-center gap-1">
+                <span class="text-xs font-black ${trendClass}">${trendIcon}</span>
+                <span class="text-[9px] font-black uppercase ${trendClass}">${trend}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>`,
-      { className: 'custom-popup', maxWidth: 300 }
+      { className: 'custom-popup', maxWidth: 300, offset: [0, -10] }
     );
 
     layer.on({
@@ -182,12 +214,13 @@ const MapVisualizer = ({ geoData, selectedRegion, onRegionClick }) => {
         zoom={8} 
         style={{ height: '100%', width: '100%', background: '#020617' }}
         zoomControl={false}
+        attributionControl={false}
       >
         <MapController selectedRegion={selectedRegion} geoData={geoData} />
 
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
+          attribution=""
         />
         
         {geoData && (
