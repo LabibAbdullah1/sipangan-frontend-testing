@@ -5,7 +5,7 @@ import {
   ResponsiveContainer, AreaChart, Area
 } from 'recharts';
 
-const PriceSidebar = ({ region, status, currentPrice, prices, isLoading, selectedRange, onRangeChange, onClose }) => {
+const PriceSidebar = ({ region, status, currentPrice, trend, prices, isLoading, selectedRange, onRangeChange, onClose }) => {
   if (!region) return null;
 
   const getStatusColor = (s) => {
@@ -28,6 +28,7 @@ const PriceSidebar = ({ region, status, currentPrice, prices, isLoading, selecte
   const priceFromHistory = latestActual ? latestActual.price : 0;
   
   const calculatedTrend = (() => {
+    if (trend) return trend;
     if (!latestActual || !previousActual) return 'stable';
     const diff = latestActual.price - previousActual.price;
     if (Math.abs(diff) < 100) return 'stable';

@@ -105,31 +105,13 @@ const MapComponent = () => {
             ...f,
             properties: {
               ...f.properties,
-              status: priceData?.status || priceData?.keadaan || 'aman',
-              price: priceData?.current_price || priceData?.price || priceData?.harga || 0,
+              status: priceData?.status || 'aman',
+              price: priceData?.current_price || 0,
               previousPrice: priceData?.previous_price || 0,
-              trend: (() => {
-                const current = priceData?.current_price || priceData?.price || priceData?.harga || 0;
-                // Coba beberapa kemungkinan nama properti dari backend
-                const previous = priceData?.previous_price || priceData?.last_price || priceData?.prev_price || 0;
-                
-                if (!previous || previous === 0) return 'stable';
-                
-                const diff = current - previous;
-                const percentChange = (diff / previous) * 100;
-                
-                // Gunakan ambang batas yang lebih sensitif (0.5% atau minimal selisih Rp 100)
-                const thresholdPercent = 0.5;
-                const thresholdNominal = 100;
-                
-                if (Math.abs(diff) > thresholdNominal && Math.abs(percentChange) > thresholdPercent) {
-                  return diff > 0 ? 'up' : 'down';
-                }
-                
-                return 'stable';
-              })(),
-              fullRegionName: priceData?.region || priceData?.name || priceData?.region_name || name,
-              fullCommodityName: priceData?.commodity || priceData?.commodity_name || selectedCommodity
+              trend: priceData?.trend || 'stable',
+              percentChange: priceData?.percent_change || 0,
+              fullRegionName: priceData?.region_name || name,
+              fullCommodityName: priceData?.commodity_name || selectedCommodity
             }
           };
 
@@ -236,6 +218,7 @@ const MapComponent = () => {
                 region={selectedRegion}
                 status={regionList.find(r => r.name === selectedRegion)?.status}
                 currentPrice={regionList.find(r => r.name === selectedRegion)?.price}
+                trend={regionList.find(r => r.name === selectedRegion)?.trend}
                 prices={regionPrices}
                 isLoading={isPriceLoading}
                 selectedRange={selectedRange}
