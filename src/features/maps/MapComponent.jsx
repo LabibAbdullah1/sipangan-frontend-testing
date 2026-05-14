@@ -209,6 +209,7 @@ const MapComponent = () => {
               <PriceSidebar
                 region={selectedRegion}
                 status={regionList.find(r => r.name === selectedRegion)?.status}
+                currentPrice={regionList.find(r => r.name === selectedRegion)?.price}
                 prices={regionPrices}
                 isLoading={isPriceLoading}
                 selectedRange={selectedRange}

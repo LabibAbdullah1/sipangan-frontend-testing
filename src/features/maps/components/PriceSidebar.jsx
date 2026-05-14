@@ -5,7 +5,7 @@ import {
   ResponsiveContainer, AreaChart, Area
 } from 'recharts';
 
-const PriceSidebar = ({ region, status, prices, isLoading, selectedRange, onRangeChange, onClose }) => {
+const PriceSidebar = ({ region, status, currentPrice, prices, isLoading, selectedRange, onRangeChange, onClose }) => {
   if (!region) return null;
 
   const getStatusColor = (s) => {
@@ -22,7 +22,7 @@ const PriceSidebar = ({ region, status, prices, isLoading, selectedRange, onRang
   const statusStyle = getStatusColor(status);
 
   const lastActual = [...prices].reverse().find(p => !p.isPrediction);
-  const currentPrice = lastActual ? lastActual.price : 0;
+  const priceFromHistory = lastActual ? lastActual.price : 0;
   
   const firstPrediction = prices.find(p => p.isPrediction);
   const predictedPrice = firstPrediction ? firstPrediction.price : 0;
@@ -52,40 +52,30 @@ const PriceSidebar = ({ region, status, prices, isLoading, selectedRange, onRang
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
-        {isLoading ? (
-          <div className="space-y-6 animate-pulse">
-            {/* Stats Grid Skeleton */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="h-24 bg-gray-800/30 rounded-2xl border border-gray-700/20"></div>
-              <div className="h-24 bg-gray-800/30 rounded-2xl border border-gray-700/20"></div>
-            </div>
-            {/* Chart Skeleton */}
-            <div className="space-y-4">
-              <div className="h-4 w-32 bg-gray-800/50 rounded"></div>
-              <div className="h-[320px] bg-gray-800/20 rounded-3xl border border-gray-800/50"></div>
-            </div>
-            {/* Info Card Skeleton */}
-            <div className="h-24 bg-gray-800/20 rounded-2xl border border-gray-700/10"></div>
-          </div>
-        ) : prices.length > 0 ? (
-          <div className="space-y-6 animate-in fade-in duration-700">
-            {/* Stats Grid */}
-            <div className={`grid grid-cols-1 ${predictedPrice > 0 ? 'sm:grid-cols-2' : 'sm:grid-cols-1'} gap-4`}>
-              <div className="p-5 bg-gray-800/20 rounded-2xl border border-gray-700/20 hover:border-emerald-500/30 transition-colors duration-300">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Current Price</p>
-                  <div className="p-1.5 bg-emerald-500/10 rounded-lg">
-                    <ArrowUpRight size={14} className="text-emerald-500" />
-                  </div>
-                </div>
-                <p className="text-2xl font-black text-white">
-                  <span className="text-xs text-emerald-500 mr-1">Rp</span>
-                  {new Intl.NumberFormat('id-ID').format(currentPrice)}
-                </p>
+        {/* Stats Grid - Now outside isLoading to be persistent */}
+        <div className={`grid grid-cols-1 ${(predictedPrice > 0 || isLoading) ? 'sm:grid-cols-2' : 'sm:grid-cols-1'} gap-4`}>
+          <div className="p-5 bg-gray-800/20 rounded-2xl border border-gray-700/20 hover:border-emerald-500/30 transition-colors duration-300">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Current Price</p>
+              <div className="p-1.5 bg-emerald-500/10 rounded-lg">
+                <ArrowUpRight size={14} className="text-emerald-500" />
               </div>
+            </div>
+            <p className="text-2xl font-black text-white">
+              <span className="text-xs text-emerald-500 mr-1">Rp</span>
+              {new Intl.NumberFormat('id-ID').format(currentPrice || priceFromHistory || 0)}
+            </p>
+          </div>
 
-              {predictedPrice > 0 && (
-                <div className="p-5 bg-amber-500/5 rounded-2xl border border-amber-500/10 hover:border-amber-500/30 transition-colors duration-300">
+          {(predictedPrice > 0 || isLoading) && (
+            <div className={`p-5 ${isLoading ? 'animate-pulse bg-gray-800/20' : 'bg-amber-500/5'} rounded-2xl border ${isLoading ? 'border-gray-700/20' : 'border-amber-500/10'} transition-colors duration-300`}>
+              {isLoading ? (
+                <div className="h-full flex flex-col justify-center">
+                  <div className="h-2 w-20 bg-gray-700 rounded mb-4"></div>
+                  <div className="h-6 w-32 bg-gray-700 rounded"></div>
+                </div>
+              ) : (
+                <>
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-[10px] text-amber-500/60 uppercase font-black tracking-widest">Forecasted Price</p>
                     <div className="p-1.5 bg-amber-500/10 rounded-lg">
@@ -97,16 +87,31 @@ const PriceSidebar = ({ region, status, prices, isLoading, selectedRange, onRang
                       <span className="text-xs text-amber-500 mr-1">Rp</span>
                       {new Intl.NumberFormat('id-ID').format(predictedPrice)}
                     </p>
-                    {currentPrice > 0 && (
-                      <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-md ${predictedPrice >= currentPrice ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
-                        {predictedPrice >= currentPrice ? '+' : ''}{((predictedPrice - currentPrice) / currentPrice * 100).toFixed(1)}%
+                    {(currentPrice || priceFromHistory) > 0 && (
+                      <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-md ${predictedPrice >= (currentPrice || priceFromHistory) ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                        {predictedPrice >= (currentPrice || priceFromHistory) ? '+' : ''}{((predictedPrice - (currentPrice || priceFromHistory)) / (currentPrice || priceFromHistory) * 100).toFixed(1)}%
                       </span>
                     )}
                   </div>
                   <p className="text-[9px] text-gray-500 font-bold uppercase mt-1">Next Month Estimate</p>
-                </div>
+                </>
               )}
             </div>
+          )}
+        </div>
+
+        {isLoading ? (
+          <div className="space-y-6 animate-pulse">
+            {/* Chart Skeleton */}
+            <div className="space-y-4">
+              <div className="h-4 w-32 bg-gray-800/50 rounded"></div>
+              <div className="h-[320px] bg-gray-800/20 rounded-3xl border border-gray-800/50"></div>
+            </div>
+            {/* Info Card Skeleton */}
+            <div className="h-24 bg-gray-800/20 rounded-2xl border border-gray-700/10"></div>
+          </div>
+        ) : prices.length > 0 ? (
+          <div className="space-y-6 animate-in fade-in duration-700">
 
 
             {/* Chart Section */}
