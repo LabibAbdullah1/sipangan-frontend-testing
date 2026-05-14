@@ -239,12 +239,6 @@ const MapVisualizer = ({ geoData, selectedRegion, onRegionClick }) => {
       
       {!selectedRegion && <MapLegend />}
       
-      <div className="absolute top-6 right-6 z-[1000] flex flex-col gap-2">
-        <div className="bg-gray-900/80 backdrop-blur-md px-4 py-2 rounded-xl border border-gray-800 flex items-center gap-3">
-          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-          <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Live Geographic Feed</span>
-        </div>
-      </div>
     </div>
   );
 };

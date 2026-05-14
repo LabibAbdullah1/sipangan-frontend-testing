@@ -73,7 +73,7 @@ const ManageData = () => {
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex items-center gap-2 p-1 bg-white/5 backdrop-blur-xl border border-white/5 rounded-2xl w-fit">
+      <div className="flex items-center gap-2 p-1 bg-white/5 backdrop-blur-xl border border-white/5 rounded-2xl w-full max-w-fit overflow-x-auto no-scrollbar">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
@@ -81,7 +81,7 @@ const ManageData = () => {
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
               className={`
-                relative flex items-center gap-3 px-6 py-3 rounded-xl text-sm font-bold transition-all
+                relative flex items-center gap-3 px-6 py-3 rounded-xl text-sm font-bold transition-all flex-shrink-0
                 ${isActive ? 'text-white' : 'text-gray-500 hover:text-gray-300'}
               `}
             >

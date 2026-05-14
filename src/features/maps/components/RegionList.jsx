@@ -31,10 +31,10 @@ const RegionList = ({ regions, onRegionClick, selectedCommodity }) => {
   return (
     <div className="w-full bg-gray-900/40 backdrop-blur-xl border border-gray-800 rounded-3xl shadow-2xl flex flex-col h-full overflow-hidden animate-in fade-in slide-in-from-right duration-700">
 
-      <div className="p-6 border-b border-gray-800/50 space-y-4">
+      <div className="p-4 border-b border-gray-800/50 space-y-3">
         <div>
-          <h3 className="text-xl font-black text-white tracking-tight">Region Explorer</h3>
-          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
+          <h3 className="text-lg font-black text-white tracking-tight">Region Explorer</h3>
+          <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">
             Browse Market Status across East Java
           </p>
         </div>
@@ -96,13 +96,13 @@ const RegionList = ({ regions, onRegionClick, selectedCommodity }) => {
         )}
       </div>
 
-      <div className="p-6 bg-gray-900/50 border-t border-gray-800/50">
-        <div className="flex items-center justify-between p-4 bg-emerald-500/5 rounded-2xl border border-emerald-500/10">
+      <div className="p-4 bg-gray-900/50 border-t border-gray-800/50">
+        <div className="flex items-center justify-between p-3 bg-emerald-500/5 rounded-2xl border border-emerald-500/10">
           <div className="flex items-center gap-3">
-            <Filter size={16} className="text-emerald-500" />
+            <Filter size={14} className="text-emerald-500" />
             <div>
-              <p className="text-[9px] text-gray-500 uppercase font-black tracking-widest">Selected Commodity</p>
-              <p className="text-xs font-bold text-white">{selectedCommodity}</p>
+              <p className="text-[8px] text-gray-500 uppercase font-black tracking-widest">Selected Commodity</p>
+              <p className="text-[11px] font-bold text-white">{selectedCommodity}</p>
             </div>
           </div>
         </div>

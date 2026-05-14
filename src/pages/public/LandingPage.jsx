@@ -10,7 +10,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 
-const Dashboard = () => {
+const LandingPage = () => {
   return (
     <div className="space-y-24 pb-20 overflow-hidden">
       {/* Hero Section */}
@@ -166,4 +166,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default LandingPage;

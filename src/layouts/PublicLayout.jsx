@@ -7,7 +7,7 @@ const PublicLayout = () => {
   const location = useLocation();
 
   const navItems = [
-    { name: 'Dashboard', path: '/', icon: LayoutDashboard },
+    { name: 'Beranda', path: '/', icon: LayoutDashboard },
     { name: 'Geo Map', path: '/map', icon: Map },
   ];
 
@@ -32,21 +32,41 @@ const PublicLayout = () => {
 
         <div className="w-full max-w-[1600px] mx-auto px-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
+            {/* Mobile Menu Toggle */}
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="p-2 -ml-2 hover:bg-white/5 rounded-xl transition-colors text-gray-400 hover:text-white"
+              className="md:hidden p-2 -ml-2 hover:bg-white/5 rounded-xl transition-colors text-gray-400 hover:text-white"
             >
               <Menu size={22} />
             </button>
+            
             <Link to="/" className="flex items-center gap-2.5">
               <div className="w-9 h-9 bg-emerald-500 rounded-xl flex items-center justify-center font-black text-white shadow-lg shadow-emerald-500/20">
                 S
               </div>
               <div className="flex flex-col">
                 <span className="font-black tracking-tight leading-none">SIPANGAN</span>
-                <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1">Data Hub</span>
+                <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1 text-emerald-500/80">Intelligence Hub</span>
               </div>
             </Link>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-8 ml-10">
+              {navItems.map((item) => {
+                const isActive = location.pathname === item.path;
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.path}
+                    className={`text-[11px] font-black uppercase tracking-[0.2em] transition-all hover:text-emerald-400 ${
+                      isActive ? 'text-emerald-500' : 'text-gray-500'
+                    }`}
+                  >
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
 
           <div className="flex items-center gap-4">
@@ -141,7 +161,7 @@ const PublicLayout = () => {
       </aside>
 
 
-      <main className="flex-1 w-full max-w-[1600px] mx-auto px-6 py-8">
+      <main className={`flex-1 w-full max-w-[1600px] mx-auto px-6 ${location.pathname === '/map' ? 'py-0 overflow-hidden' : 'py-8'}`}>
         <Outlet />
       </main>
     </div>

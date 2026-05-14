@@ -106,7 +106,28 @@ const MapComponent = () => {
             properties: {
               ...f.properties,
               status: priceData?.status || priceData?.keadaan || 'aman',
-              price: priceData?.current_price || priceData?.price || priceData?.harga,
+              price: priceData?.current_price || priceData?.price || priceData?.harga || 0,
+              previousPrice: priceData?.previous_price || 0,
+              trend: (() => {
+                const current = priceData?.current_price || priceData?.price || priceData?.harga || 0;
+                // Coba beberapa kemungkinan nama properti dari backend
+                const previous = priceData?.previous_price || priceData?.last_price || priceData?.prev_price || 0;
+                
+                if (!previous || previous === 0) return 'stable';
+                
+                const diff = current - previous;
+                const percentChange = (diff / previous) * 100;
+                
+                // Gunakan ambang batas yang lebih sensitif (0.5% atau minimal selisih Rp 100)
+                const thresholdPercent = 0.5;
+                const thresholdNominal = 100;
+                
+                if (Math.abs(diff) > thresholdNominal && Math.abs(percentChange) > thresholdPercent) {
+                  return diff > 0 ? 'up' : 'down';
+                }
+                
+                return 'stable';
+              })(),
               fullRegionName: priceData?.region || priceData?.name || priceData?.region_name || name,
               fullCommodityName: priceData?.commodity || priceData?.commodity_name || selectedCommodity
             }
@@ -181,7 +202,7 @@ const MapComponent = () => {
 
 
   return (
-    <div className="w-full lg:h-full flex flex-col gap-4 relative lg:overflow-hidden">
+    <div className="w-full lg:h-full flex flex-col gap-2 relative lg:overflow-hidden py-4">
       {/* Premium Header */}
       <MapHeader
         selectedCommodity={selectedCommodity}
@@ -191,7 +212,7 @@ const MapComponent = () => {
 
       <div className="flex-1 flex flex-col lg:flex-row gap-4 relative min-h-0">
         {/* Main Map Visualizer */}
-        <div className={`transition-all duration-500 ease-in-out ${selectedRegion ? 'lg:flex-[1.5]' : 'flex-1'} h-[400px] lg:h-full`}>
+        <div className={`transition-all duration-500 ease-in-out ${selectedRegion ? 'lg:flex-[1.5]' : 'flex-1'} h-[400px] lg:h-full lg:max-h-[780px]`}>
           <MapVisualizer
             geoData={enrichedGeoData}
             selectedRegion={selectedRegion}
@@ -202,10 +223,15 @@ const MapComponent = () => {
 
 
         {/* Analytics Sidebar or Region List */}
-        <div className="w-full lg:w-[450px] h-[500px] lg:h-full flex flex-col overflow-hidden">
+        <div className={`
+          ${selectedRegion
+            ? 'w-full h-auto lg:w-[450px] lg:h-full'
+            : 'w-full lg:w-[450px] h-[500px] lg:h-full overflow-hidden'}
+          flex flex-col relative
+        `}>
 
           {selectedRegion ? (
-            <div className="h-full animate-in slide-in-from-right duration-500 flex flex-col overflow-hidden">
+            <div className="animate-in slide-in-from-right duration-500 flex flex-col">
               <PriceSidebar
                 region={selectedRegion}
                 status={regionList.find(r => r.name === selectedRegion)?.status}

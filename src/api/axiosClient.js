@@ -15,24 +15,37 @@ axiosClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 403) {
+      alert('Anda tidak memiliki izin untuk melakukan aksi ini.');
+      return Promise.reject(error);
+    }
+
+    // Don't attempt refresh if the request was to login itself
+    const isLoginRequest = originalRequest.url.includes('/auth/login');
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isLoginRequest) {
       originalRequest._retry = true;
 
       try {
-        // According to documentation: PUT /api/v1/auth/refresh
-        await axios.put(
+        const refreshToken = localStorage.getItem('refreshToken');
+        const response = await axios.put(
           `${axiosClient.defaults.baseURL}/auth/refresh`,
-          {},
+          { refreshToken },
           { 
             headers: { 'x-api-key': import.meta.env.VITE_API_KEY || '' },
             withCredentials: true 
           }
         );
 
+        const { accessToken } = response.data.data;
+        localStorage.setItem('accessToken', accessToken);
+
         return axiosClient(originalRequest);
       } catch (refreshError) {
         localStorage.removeItem('accessToken');
-        if (window.location.pathname.startsWith('/admin')) {
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('userRole');
+        if (window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin/login') {
           window.location.href = '/admin/login';
         }
         return Promise.reject(refreshError);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, Database, User, Map, Menu, X } from 'lucide-react';
+import { LogOut, Database, User, Map, Menu, X, ShieldCheck, History } from 'lucide-react';
 import { authService } from '../api/services';
 
 const AdminLayout = () => {
@@ -15,19 +15,26 @@ const AdminLayout = () => {
 
   const handleLogout = async () => {
     try {
-      await authService.logout();
+      const refreshToken = localStorage.getItem('refreshToken');
+      await authService.logout(refreshToken);
     } catch (error) {
       console.error('Logout failed on server:', error);
     } finally {
       localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('userRole');
       navigate('/');
     }
   };
 
+  const userRole = localStorage.getItem('userRole') || 'operator';
+
   const navItems = [
-    { path: '/admin/map', label: 'Peta Interaktif', icon: Map },
-    { path: '/admin/manage', label: 'Kelola Data Pangan', icon: Database },
-  ];
+    { path: '/admin/manage', label: 'Kelola Data Pangan', icon: Database, roles: ['super_admin', 'admin', 'operator'] },
+    { path: '/admin/map', label: 'Peta Interaktif', icon: Map, roles: ['super_admin', 'admin', 'operator'] },
+    { path: '/admin/users', label: 'Kelola Admin', icon: ShieldCheck, roles: ['super_admin', 'admin'] },
+    { path: '/admin/logs', label: 'Log Aktivitas', icon: History, roles: ['super_admin', 'admin'] },
+  ].filter(item => item.roles.includes(userRole));
 
   return (
     <div className="h-screen bg-[#020617] text-gray-100 flex font-sans selection:bg-emerald-500/30 relative overflow-hidden">
@@ -46,7 +53,7 @@ const AdminLayout = () => {
 
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
@@ -68,7 +75,7 @@ const AdminLayout = () => {
               <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mt-1">Control Center</span>
             </div>
           </div>
-          <button 
+          <button
             onClick={() => setIsSidebarOpen(false)}
             className="lg:hidden p-2 text-gray-500 hover:text-white"
           >
@@ -87,8 +94,8 @@ const AdminLayout = () => {
                   to={item.path}
                   className={`
                     flex items-center gap-4 px-4 py-4 rounded-2xl text-base font-bold transition-all duration-300
-                    ${isActive 
-                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-lg shadow-emerald-500/5' 
+                    ${isActive
+                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-lg shadow-emerald-500/5'
                       : 'text-gray-500 hover:text-white hover:bg-white/5 border border-transparent'}
                   `}
                 >
@@ -107,11 +114,11 @@ const AdminLayout = () => {
             </div>
             <div className="flex flex-col overflow-hidden">
               <span className="text-xs font-bold text-white truncate">Administrator</span>
-              <span className="text-[10px] text-gray-500 font-medium">Session Active</span>
+              <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">{userRole.replace('_', ' ')}</span>
             </div>
           </div>
-          
-          <button 
+
+          <button
             onClick={handleLogout}
             className="flex items-center gap-4 px-4 py-4 w-full text-gray-500 hover:text-red-400 hover:bg-red-500/5 rounded-2xl transition-all duration-300 font-bold text-base"
           >
@@ -125,7 +132,7 @@ const AdminLayout = () => {
       <main className="flex-1 flex flex-col relative z-10 h-full overflow-hidden">
         <header className="h-20 border-b border-white/5 flex items-center justify-between px-6 lg:px-10 bg-gray-950/40 backdrop-blur-xl shrink-0">
           <div className="flex items-center gap-4">
-            <button 
+            <button
               onClick={() => setIsSidebarOpen(true)}
               className="lg:hidden p-2 text-gray-400 hover:text-white bg-white/5 rounded-xl border border-white/5"
             >

@@ -7,8 +7,8 @@ import axiosClient from './axiosClient';
 
 export const authService = {
   login: (credentials) => axiosClient.post('/auth/login', credentials),
-  refresh: () => axiosClient.put('/auth/refresh'),
-  logout: () => axiosClient.delete('/auth/logout'),
+  refresh: (refreshToken) => axiosClient.put('/auth/refresh', { refreshToken }),
+  logout: (refreshToken) => axiosClient.delete('/auth/logout', { data: { refreshToken } }),
 };
 
 export const commodityService = {
@@ -37,4 +37,14 @@ export const mapService = {
 
 export const alertService = {
   getAlerts: () => axiosClient.get('/alerts'),
+};
+export const userService = {
+  getAll: () => axiosClient.get('/users'),
+  create: (data) => axiosClient.post('/users', data),
+  update: (id, data) => axiosClient.put(`/users/${id}`, data),
+  delete: (id) => axiosClient.delete(`/users/${id}`),
+};
+
+export const logService = {
+  getLogs: (params) => axiosClient.get('/api/v1/logs', { params }),
 };

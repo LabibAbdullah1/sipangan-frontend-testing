@@ -20,13 +20,35 @@ const Login = () => {
       const response = await authService.login({ username, password });
       
       if (response.data?.accessToken) {
-        localStorage.setItem('accessToken', response.data.accessToken);
+        const { accessToken, refreshToken } = response.data;
+        
+        // Get role from response body or decode from JWT
+        let role = response.data.role;
+        
+        if (!role) {
+          try {
+            const payload = JSON.parse(atob(accessToken.split('.')[1]));
+            role = payload.role || 'operator';
+          } catch (e) {
+            console.error('Failed to decode token:', e);
+            role = 'operator';
+          }
+        }
+
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('refreshToken', refreshToken);
+        localStorage.setItem('userRole', role);
         navigate('/admin/manage');
       } else {
-        navigate('/admin/manage');
+        setError('Respons server tidak valid.');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Authentication failed. Please check your credentials.');
+      const message = err.response?.data?.message || 'Gagal terhubung ke server.';
+      if (err.response?.status === 401) {
+        setError('Kredensial tidak valid. Silakan periksa kembali username dan password Anda.');
+      } else {
+        setError(message);
+      }
     } finally {
       setLoading(false);
     }
