@@ -12,7 +12,7 @@ const PublicLayout = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#020617] text-gray-100 flex flex-col relative overflow-x-hidden">
+    <div className={`${location.pathname === '/map' ? 'h-screen' : 'min-h-screen'} bg-[#020617] text-gray-100 flex flex-col relative overflow-hidden`}>
       {/* Background Texture & Gradients */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(16,185,129,0.1),transparent_50%)]"></div>
@@ -28,7 +28,7 @@ const PublicLayout = () => {
       </div>
 
       {/* Header */}
-      <header className="h-16 border-b border-white/5 bg-gray-950/50 backdrop-blur-xl sticky top-0 z-[9000] flex items-center">
+      <header className="h-16 border-b border-white/5 bg-gray-950/50 backdrop-blur-xl sticky top-0 z-[9000] flex items-center shrink-0">
 
         <div className="w-full max-w-[1600px] mx-auto px-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -161,7 +161,7 @@ const PublicLayout = () => {
       </aside>
 
 
-      <main className={`flex-1 w-full max-w-[1600px] mx-auto px-6 ${location.pathname === '/map' ? 'py-0 overflow-hidden' : 'py-8'}`}>
+      <main className={`flex-1 flex flex-col min-h-0 w-full max-w-[1600px] mx-auto px-6 ${location.pathname === '/map' ? 'py-0 overflow-hidden' : 'py-8'}`}>
         <Outlet />
       </main>
     </div>
