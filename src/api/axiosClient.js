@@ -28,8 +28,15 @@ axiosClient.interceptors.response.use(
 
       try {
         const refreshToken = localStorage.getItem('refreshToken');
+        if (!refreshToken) throw new Error('No refresh token available');
+
+        // Normalisasi URL untuk menghindari double slash
+        const baseUrl = axiosClient.defaults.baseURL.endsWith('/') 
+          ? axiosClient.defaults.baseURL.slice(0, -1) 
+          : axiosClient.defaults.baseURL;
+
         const response = await axios.put(
-          `${axiosClient.defaults.baseURL}/auth/refresh`,
+          `${baseUrl}/auth/refresh`,
           { refreshToken },
           {
             headers: { 'x-api-key': import.meta.env.VITE_API_KEY || '' },
@@ -40,13 +47,21 @@ axiosClient.interceptors.response.use(
         const { accessToken } = response.data.data;
         localStorage.setItem('accessToken', accessToken);
 
+        // Update header Authorization untuk request yang sedang diulang
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return axiosClient(originalRequest);
       } catch (refreshError) {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('userRole');
-        if (window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin/login') {
-          window.location.href = '/admin/login';
+        // Hanya logout jika refresh token benar-benar tidak valid (400/401)
+        // Jika error server (500), mungkin jangan langsung logout agar tidak mengganggu user
+        if (refreshError.response?.status === 400 || refreshError.response?.status === 401 || !localStorage.getItem('refreshToken')) {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('userRole');
+          localStorage.removeItem('userFullname');
+          
+          if (window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin/login') {
+            window.location.href = '/admin/login?expired=true';
+          }
         }
         return Promise.reject(refreshError);
       }
