@@ -53,11 +53,17 @@ const PriceTable = ({ commodities }) => {
     region: ''
   });
 
+  const getLocalYYYYMMDD = (dateString) => {
+    const d = dateString ? new Date(dateString) : new Date();
+    const offset = d.getTimezoneOffset() * 60000;
+    return new Date(d.getTime() - offset).toISOString().split('T')[0];
+  };
+
   const [formData, setFormData] = useState({
     commodity_id: '',
     region_id: '',
     price: '',
-    date: new Date().toISOString().split('T')[0]
+    date: getLocalYYYYMMDD()
   });
 
   useEffect(() => {
@@ -105,7 +111,7 @@ const PriceTable = ({ commodities }) => {
         commodity_id: price.commodity_id,
         region_id: price.region_id,
         price: price.price,
-        date: price.date.split('T')[0]
+        date: getLocalYYYYMMDD(price.date)
       });
     } else {
       setCurrentPrice(null);
@@ -113,7 +119,7 @@ const PriceTable = ({ commodities }) => {
         commodity_id: commodities[0]?.id || '',
         region_id: regions[0]?.id || '',
         price: '',
-        date: new Date().toISOString().split('T')[0]
+        date: getLocalYYYYMMDD()
       });
     }
     setIsModalOpen(true);
