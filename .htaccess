@@ -1,0 +1,12 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Jika file atau direktori ada, langsung akses (untuk CSS/JS/Images)
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Sisanya, arahkan ke index.html agar React Router yang ambil alih
+  RewriteRule . /index.html [L]
+</IfModule>
