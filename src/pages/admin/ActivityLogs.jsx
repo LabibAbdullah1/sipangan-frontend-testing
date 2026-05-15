@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { logService } from '../../api/services';
-import { History, Loader2, AlertCircle, User, Clock, Activity, ChevronLeft, ChevronRight, Search, Filter, Calendar, ChevronDown, ChevronRight as ChevronRightIcon, Package, TrendingUp, Users, UserCog } from 'lucide-react';
+import { logService, commodityService, mapService } from '../../api/services';
+import { History, Loader2, AlertCircle, User, Clock, Activity, ChevronLeft, ChevronRight, Search, ChevronRight as ChevronRightIcon, Package, TrendingUp, Users, UserCog } from 'lucide-react';
 
 const ActivityLogs = () => {
   const [logs, setLogs] = useState([]);
+  const [commodities, setCommodities] = useState([]);
+  const [regions, setRegions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
@@ -12,11 +14,37 @@ const ActivityLogs = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('ALL');
   const [direction, setDirection] = useState(0);
-  const limit = 50;
+  const limit = 100;
 
   useEffect(() => {
     fetchLogs();
-  }, [page]);
+  }, [page, activeTab]);
+
+  useEffect(() => {
+    const fetchCatalogs = async () => {
+      try {
+        const [commRes, regRes] = await Promise.all([
+          commodityService.getAll(),
+          mapService.getMapData()
+        ]);
+        setCommodities(commRes.data || []);
+        setRegions(regRes.data || []);
+      } catch (err) {
+        console.error('Failed to fetch catalogs:', err);
+      }
+    };
+    fetchCatalogs();
+  }, []);
+
+  const commodityMap = Object.fromEntries(commodities.map(c => [c.id, c.name]));
+  const regionMap = Object.fromEntries(regions.map(r => [r.id, r.name]));
+
+  const resolveName = (id, type) => {
+    if (!id) return null;
+    if (type === 'commodity') return commodityMap[id];
+    if (type === 'region') return regionMap[id];
+    return null;
+  };
 
   const fetchLogs = async () => {
     try {
@@ -39,9 +67,19 @@ const ActivityLogs = () => {
     if (!details) return '-';
     try {
       const obj = typeof details === 'string' ? JSON.parse(details) : details;
-      if (obj.username) return `User: ${obj.username} (${obj.role})`;
-      if (obj.commodity_name) return `Komoditas: ${obj.commodity_name}`;
-      if (obj.price) return `Rp ${obj.price.toLocaleString()} di ${obj.region}`;
+      if (obj.username) return `User: ${obj.username} (${obj.role || 'user'})`;
+      if (obj.price !== undefined || obj.new_price !== undefined) {
+        const resolvedCommodity = resolveName(obj.commodity_id, 'commodity');
+        const resolvedRegion = resolveName(obj.region_id, 'region');
+        const location = resolvedRegion || obj.region || obj.region_name || obj.regionName || obj.name || obj.regency || 'Lokasi';
+        const commodity = resolvedCommodity || obj.commodity_name || obj.commodity || '';
+        const currentPrice = obj.price ?? obj.new_price;
+        return `${commodity ? commodity + ': ' : ''}Rp ${currentPrice.toLocaleString()} di ${location}`;
+      }
+      if (obj.commodity_name || obj.commodity_id) {
+        const name = obj.commodity_name || resolveName(obj.commodity_id, 'commodity');
+        return name ? `Komoditas: ${name}` : 'Data Komoditas';
+      }
       if (typeof obj === 'object') return Object.entries(obj).map(([k, v]) => `${k}: ${v}`).join(', ');
       return String(obj);
     } catch (e) {
@@ -51,7 +89,7 @@ const ActivityLogs = () => {
 
   const filteredLogs = logs.filter(log => {
     const matchesSearch = log.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (log.details && log.details.toLowerCase().includes(searchTerm.toLowerCase()));
+                         (log.details && typeof log.details === 'string' && log.details.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesAction = activeTab === 'ALL' || log.action === activeTab;
     return matchesSearch && matchesAction;
   });
@@ -70,33 +108,14 @@ const ActivityLogs = () => {
     const newIndex = tabs.findIndex(t => t.id === tabId);
     setDirection(newIndex > currentIndex ? 1 : -1);
     setActiveTab(tabId);
+    setPage(1);
   };
 
   const variants = {
-    enter: (direction) => ({
-      x: direction > 0 ? 30 : -30,
-      opacity: 0,
-    }),
-    center: {
-      zIndex: 1,
-      x: 0,
-      opacity: 1,
-    },
-    exit: (direction) => ({
-      zIndex: 0,
-      x: direction < 0 ? 30 : -30,
-      opacity: 0,
-    }),
+    enter: (direction) => ({ x: direction > 0 ? 30 : -30, opacity: 0 }),
+    center: { zIndex: 1, x: 0, opacity: 1 },
+    exit: (direction) => ({ zIndex: 0, x: direction < 0 ? 30 : -30, opacity: 0 }),
   };
-
-  const actionOptions = [
-    { value: 'ALL', label: 'Semua Aktivitas' },
-    { value: 'CREATE_USER', label: 'Manajemen User' },
-    { value: 'UPDATE_USER', label: 'Update User' },
-    { value: 'ADD_PRICE', label: 'Input Harga' },
-    { value: 'UPDATE_PRICE', label: 'Update Harga' },
-    { value: 'ADD_COMMODITY', label: 'Data Komoditas' },
-  ];
 
   const getActionLabel = (action) => {
     const labels = {
@@ -104,8 +123,8 @@ const ActivityLogs = () => {
       'UPDATE_PRICE': 'Memperbarui Data Harga',
       'DELETE_PRICE': 'Menghapus Data Harga',
       'ADD_COMMODITY': 'Menambah Komoditas',
-      'CREATE_USER': 'Menambah Admin/Operator Baru',
-      'UPDATE_USER': 'Memperbarui Data Pengguna'
+      'CREATE_USER': 'Menambah Admin Baru',
+      'UPDATE_USER': 'Memperbarui Pengguna'
     };
     return labels[action] || action.replace('_', ' ');
   };
@@ -118,26 +137,17 @@ const ActivityLogs = () => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString('id-ID', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
+    return new Date(dateString).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom duration-700 pb-20">
-      {/* Page Header */}
+    <div className="max-w-6xl space-y-8 animate-in fade-in slide-in-from-bottom duration-700 pb-20">
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2 text-xs font-black text-gray-500 uppercase tracking-[0.3em]">
           Admin <ChevronRightIcon size={12} /> Security Audit
         </div>
         <h1 className="text-4xl font-black text-white tracking-tight flex items-center gap-3">
-          <History className="text-blue-500" size={32} />
-          Log Aktivitas
+          <History className="text-blue-500" size={32} /> Log Aktivitas
         </h1>
         <p className="text-gray-400 font-medium">
           Audit trail sistem untuk memantau setiap perubahan data dan aktivitas personel.
@@ -158,143 +168,61 @@ const ActivityLogs = () => {
           />
         </div>
 
-        {/* Tabs Navigation */}
-        <div className="flex items-center gap-2 p-1 bg-white/5 backdrop-blur-xl border border-white/5 rounded-2xl w-full max-w-fit overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-2 p-1 bg-white/5 backdrop-blur-xl border border-white/5 rounded-2xl w-full max-fit overflow-x-auto no-scrollbar">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
-              <button
-                key={tab.id}
-                onClick={() => handleTabChange(tab.id)}
-                className={`
-                  relative flex items-center gap-3 px-6 py-3 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0
-                  ${isActive ? 'text-white' : 'text-gray-500 hover:text-gray-300'}
-                `}
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="activeTabLog"
-                    className="absolute inset-0 bg-gray-800 border border-gray-700 rounded-xl"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                  />
-                )}
-                <span className="relative z-10 flex items-center gap-2">
-                  <tab.icon size={16} className={isActive ? tab.color : 'text-current'} />
-                  {tab.label}
-                </span>
+              <button key={tab.id} onClick={() => handleTabChange(tab.id)} className={`relative flex items-center gap-3 px-6 py-3 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 ${isActive ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}>
+                {isActive && <motion.div layoutId="activeTabLog" className="absolute inset-0 bg-gray-800 border border-gray-700 rounded-xl" transition={{ type: "spring", bounce: 0.2, duration: 0.6 }} />}
+                <span className="relative z-10 flex items-center gap-2"><tab.icon size={16} className={isActive ? tab.color : 'text-current'} />{tab.label}</span>
               </button>
             );
           })}
         </div>
       </div>
 
-      {error && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl flex items-center gap-4"
-        >
-          <AlertCircle size={20} />
-          <span className="text-xs font-bold uppercase tracking-wide">{error}</span>
-        </motion.div>
-      )}
-
       <AnimatePresence mode="wait" custom={direction}>
-        <motion.div
-          key={activeTab}
-          custom={direction}
-          variants={variants}
-          initial="enter"
-          animate="center"
-          exit="exit"
-          transition={{
-            x: { type: "spring", stiffness: 300, damping: 30 },
-            opacity: { duration: 0.2 }
-          }}
-          className="bg-white/5 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden shadow-xl"
-        >
-          <div className="overflow-x-auto">
+        <motion.div key={activeTab} custom={direction} variants={variants} initial="enter" animate="center" exit="exit" transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }} className="bg-white/5 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden shadow-xl flex flex-col">
+          <div className="overflow-x-auto flex-1">
             <table className="w-full text-left">
-              <thead className="bg-gray-900/50 border-b border-gray-800">
+              <thead className="bg-gray-900/50 border-b border-gray-800 sticky top-0 z-10 backdrop-blur-md">
                 <tr>
-                  <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">Waktu</th>
-                  <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">Pelaku</th>
-                  <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">Aksi</th>
-                  <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">Detail</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest w-[180px]">Waktu</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest w-[200px]">Pelaku</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest w-[180px]">Aksi</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Detail</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800">
                 {loading ? (
-                  <tr>
-                    <td colSpan="4" className="px-8 py-20 text-center">
-                      <Loader2 className="w-8 h-8 text-emerald-500 animate-spin mx-auto mb-4" />
-                      <p className="text-xs font-bold text-gray-600 uppercase tracking-widest">Memuat Log...</p>
-                    </td>
-                  </tr>
+                  <tr><td colSpan="4" className="px-8 py-20 text-center text-xs font-bold text-gray-600 uppercase tracking-widest">Memuat Log...</td></tr>
                 ) : filteredLogs.length === 0 ? (
-                  <tr>
-                    <td colSpan="4" className="px-8 py-20 text-center">
-                      <p className="text-xs font-bold text-gray-600 uppercase tracking-widest">Tidak ada aktivitas yang sesuai filter.</p>
-                    </td>
-                  </tr>
+                  <tr><td colSpan="4" className="px-8 py-20 text-center text-xs font-bold text-gray-600 uppercase tracking-widest">Tidak ada aktivitas.</td></tr>
                 ) : filteredLogs.map((log) => (
-                  <motion.tr
-                    key={log.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="group hover:bg-white/5 transition-colors"
-                  >
+                  <tr key={log.id} className="group hover:bg-white/5 transition-colors">
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-3 text-gray-400">
-                        <Clock size={14} />
-                        <span className="text-xs font-medium">{formatDate(log.created_at)}</span>
-                      </div>
+                       <div className="flex items-center gap-2 text-[11px] text-gray-400 font-medium whitespace-nowrap"><Clock size={12} /> {formatDate(log.created_at)}</div>
                     </td>
+                    <td className="px-6 py-4 text-white font-bold text-sm tracking-tight">{log.fullname}</td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-500 border border-white/5 group-hover:border-emerald-500/30 group-hover:bg-emerald-500/10 group-hover:text-emerald-500 transition-all">
-                          <User size={14} />
+                      <div className="max-w-[160px]">
+                        <div className={`inline-flex px-3 py-1.5 rounded-lg text-[9px] font-black border text-center items-center justify-center ${getActionColor(log.action)}`}>
+                          {getActionLabel(log.action)}
                         </div>
-                        <span className="font-bold text-white tracking-tight text-sm">{log.fullname}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${getActionColor(log.action)}`}>
-                        {getActionLabel(log.action)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-gray-400 text-xs font-medium line-clamp-2 max-w-md">
-                        {formatDetails(log.details)}
-                      </span>
-                    </td>
-                  </motion.tr>
+                    <td className="px-6 py-4 text-gray-400 text-xs font-medium max-w-md line-clamp-2 whitespace-normal break-words">{formatDetails(log.details)}</td>
+                  </tr>
                 ))}
               </tbody>
             </table>
           </div>
-  
-          {/* Pagination */}
           {totalPages > 1 && (
             <div className="px-8 py-6 border-t border-white/5 flex items-center justify-between">
-              <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">
-                Halaman {page} dari {totalPages}
-              </p>
+              <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">Halaman {page} dari {totalPages}</p>
               <div className="flex gap-2">
-                <button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="p-2 bg-white/5 border border-white/5 rounded-lg text-gray-500 hover:text-white hover:bg-white/10 disabled:opacity-30 transition-all"
-                >
-                  <ChevronLeft size={18} />
-                </button>
-                <button
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="p-2 bg-white/5 border border-white/5 rounded-lg text-gray-500 hover:text-white hover:bg-white/10 disabled:opacity-30 transition-all"
-                >
-                  <ChevronRight size={18} />
-                </button>
+                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-2 bg-white/5 border border-white/5 rounded-lg text-gray-500 hover:text-white disabled:opacity-30"><ChevronLeft size={18} /></button>
+                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="p-2 bg-white/5 border border-white/5 rounded-lg text-gray-500 hover:text-white disabled:opacity-30"><ChevronRight size={18} /></button>
               </div>
             </div>
           )}

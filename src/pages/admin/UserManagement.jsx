@@ -34,12 +34,12 @@ const UserManagement = () => {
       setLoading(true);
       const response = await userService.getAll();
       let fetchedUsers = response.data.users || [];
-      
+
       // Filter users if current user is admin to protect superior data
       if (currentUserRole === 'admin') {
         fetchedUsers = fetchedUsers.filter(u => u.role === 'operator');
       }
-      
+
       setUsers(fetchedUsers);
     } catch (err) {
       setError('Gagal mengambil data pengguna.');
@@ -62,7 +62,7 @@ const UserManagement = () => {
           role: formData.role
         };
         if (formData.password) updateData.password = formData.password;
-        
+
         await userService.update(editingUser.id, updateData);
         setSuccess('Data pengguna berhasil diperbarui!');
       } else {
@@ -93,7 +93,7 @@ const UserManagement = () => {
 
   const handleDeleteUser = async (id) => {
     if (!window.confirm('Apakah Anda yakin ingin menghapus pengguna ini?')) return;
-    
+
     setActionLoading(true);
     try {
       await userService.delete(id);
@@ -106,7 +106,7 @@ const UserManagement = () => {
     }
   };
 
-  const filteredUsers = users.filter(user => 
+  const filteredUsers = users.filter(user =>
     user.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.username.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -176,8 +176,8 @@ const UserManagement = () => {
                   </td>
                 </tr>
               ) : userList.map((user) => (
-                <motion.tr 
-                  key={user.id} 
+                <motion.tr
+                  key={user.id}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   className="group hover:bg-white/5 transition-colors"
@@ -195,14 +195,14 @@ const UserManagement = () => {
                   </td>
                   <td className="w-[25%] px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button 
+                      <button
                         onClick={() => handleEditClick(user)}
                         className="p-3 text-gray-600 hover:text-blue-400 hover:bg-blue-500/10 rounded-xl transition-all"
                       >
                         <Edit2 size={18} />
                       </button>
                       {user.role !== 'super_admin' && (
-                        <button 
+                        <button
                           onClick={() => handleDeleteUser(user.id)}
                           disabled={actionLoading}
                           className="p-3 text-gray-600 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all disabled:opacity-30"
@@ -222,7 +222,7 @@ const UserManagement = () => {
   );
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-700 pb-20">
+    <div className="max-w-6xl space-y-8 animate-in fade-in slide-in-from-bottom duration-700 pb-20">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="flex flex-col gap-2">
@@ -237,8 +237,8 @@ const UserManagement = () => {
             Manage administrative access, personnel hierarchy, and system permissions.
           </p>
         </div>
-        
-        <button 
+
+        <button
           onClick={() => {
             setEditingUser(null);
             setFormData({ username: '', password: '', fullname: '', role: 'operator' });
@@ -257,8 +257,8 @@ const UserManagement = () => {
           <div className="absolute left-5 top-1/2 -translate-y-1/2 z-10">
             <Search className="text-gray-500 group-focus-within:text-emerald-500 transition-colors" size={18} />
           </div>
-          <input 
-            type="text" 
+          <input
+            type="text"
             placeholder="Cari nama atau username personel..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -269,13 +269,13 @@ const UserManagement = () => {
 
       <AnimatePresence>
         {(error || success) && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95 }}
             className={`p-4 rounded-2xl flex items-center gap-4 border ${
-              error 
-                ? 'bg-red-500/10 border-red-500/20 text-red-400' 
+              error
+                ? 'bg-red-500/10 border-red-500/20 text-red-400'
                 : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
             }`}
           >
@@ -319,7 +319,7 @@ const UserManagement = () => {
 
       <AnimatePresence mode="wait" custom={direction}>
         {loading ? (
-          <motion.div 
+          <motion.div
             key="loading"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -330,7 +330,7 @@ const UserManagement = () => {
             <p className="text-xs font-bold text-gray-600 uppercase tracking-widest">Sinkronisasi Data Personel...</p>
           </motion.div>
         ) : (
-          <motion.div 
+          <motion.div
             key={activeTab}
             custom={direction}
             variants={variants}
@@ -344,25 +344,25 @@ const UserManagement = () => {
             className="space-y-12"
           >
             {activeTab === 'super_admin' && (
-              <UserTable 
-                title="Administrator Utama" 
-                userList={superAdmins} 
+              <UserTable
+                title="Administrator Utama"
+                userList={superAdmins}
                 roleColor="bg-purple-500 text-purple-400"
                 icon={ShieldCheck}
               />
             )}
             {activeTab === 'admin' && (
-              <UserTable 
-                title="Administrator" 
-                userList={admins} 
+              <UserTable
+                title="Administrator"
+                userList={admins}
                 roleColor="bg-blue-500 text-blue-400"
                 icon={Shield}
               />
             )}
             {activeTab === 'operator' && (
-              <UserTable 
-                title="Operator" 
-                userList={operators} 
+              <UserTable
+                title="Operator"
+                userList={operators}
                 roleColor="bg-emerald-500 text-emerald-400"
                 icon={UserCog}
               />
@@ -375,14 +375,14 @@ const UserManagement = () => {
       <AnimatePresence>
         {showAddModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowAddModal(false)}
               className="absolute inset-0 bg-black/80 backdrop-blur-sm"
             />
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -407,9 +407,9 @@ const UserManagement = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Username</label>
-                      <input 
+                      <input
                         required
-                        type="text" 
+                        type="text"
                         value={formData.username}
                         onChange={(e) => setFormData({...formData, username: e.target.value})}
                         className={`w-full bg-white/5 border border-white/5 rounded-2xl px-4 py-4 text-white focus:outline-none transition-all font-medium ${editingUser ? 'opacity-50 cursor-not-allowed' : 'focus:border-emerald-500/50'}`}
@@ -419,9 +419,9 @@ const UserManagement = () => {
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Password</label>
-                      <input 
+                      <input
                         required={!editingUser}
-                        type="password" 
+                        type="password"
                         value={formData.password}
                         onChange={(e) => setFormData({...formData, password: e.target.value})}
                         className="w-full bg-white/5 border border-white/5 rounded-2xl px-4 py-4 text-white focus:outline-none focus:border-emerald-500/50 transition-all font-medium placeholder:text-gray-700"
@@ -433,9 +433,9 @@ const UserManagement = () => {
 
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Nama Lengkap</label>
-                    <input 
+                    <input
                       required
-                      type="text" 
+                      type="text"
                       value={formData.fullname}
                       onChange={(e) => setFormData({...formData, fullname: e.target.value})}
                       className="w-full bg-white/5 border border-white/5 rounded-2xl px-4 py-4 text-white focus:outline-none focus:border-emerald-500/50 transition-all font-medium"
@@ -472,8 +472,8 @@ const UserManagement = () => {
                                     setIsRoleDropdownOpen(false);
                                   }}
                                   className={`w-full px-4 py-3 rounded-xl text-sm font-bold text-left transition-all flex items-center gap-3
-                                    ${formData.role === 'admin' 
-                                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20' 
+                                    ${formData.role === 'admin'
+                                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20'
                                       : 'text-gray-400 hover:bg-white/5 hover:text-white border border-transparent'}
                                   `}
                                 >
@@ -488,8 +488,8 @@ const UserManagement = () => {
                                   setIsRoleDropdownOpen(false);
                                 }}
                                 className={`w-full px-4 py-3 rounded-xl text-sm font-bold text-left transition-all flex items-center gap-3
-                                  ${formData.role === 'operator' 
-                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20' 
+                                  ${formData.role === 'operator'
+                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20'
                                     : 'text-gray-400 hover:bg-white/5 hover:text-white border border-transparent'}
                                 `}
                               >
@@ -504,14 +504,14 @@ const UserManagement = () => {
                   </div>
 
                   <div className="flex gap-4 pt-4">
-                    <button 
+                    <button
                       type="button"
                       onClick={() => setShowAddModal(false)}
                       className="flex-1 px-4 py-5 rounded-2xl bg-white/5 text-gray-400 font-black uppercase tracking-widest text-[10px] hover:bg-white/10 transition-all"
                     >
                       Batal
                     </button>
-                    <button 
+                    <button
                       type="submit"
                       disabled={actionLoading}
                       className="flex-1 px-4 py-5 rounded-2xl bg-emerald-500 text-white font-black uppercase tracking-widest text-[10px] hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50"

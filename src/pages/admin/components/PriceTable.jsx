@@ -239,15 +239,15 @@ const PriceTable = ({ commodities }) => {
       </div>
 
       {/* Table */}
-      <div className="bg-white/5 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden shadow-xl">
-        <div className="overflow-x-auto">
+      <div className="bg-white/5 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden shadow-xl flex flex-col">
+        <div className="overflow-x-auto flex-1">
           <table className="w-full text-left">
             <thead className="bg-gray-900/50 border-b border-gray-800">
               <tr>
-                <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">Date</th>
+                <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest w-[180px]">Date</th>
                 <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">Region</th>
-                <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest text-right">Price</th>
-                <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
+                <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest text-right w-[150px]">Price</th>
+                <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest text-right w-[120px]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800">

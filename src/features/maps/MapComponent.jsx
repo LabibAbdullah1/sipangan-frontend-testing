@@ -184,7 +184,7 @@ const MapComponent = () => {
 
 
   return (
-    <div className="w-full lg:h-full flex flex-col gap-2 relative lg:overflow-hidden py-4">
+    <div className="w-full h-full flex flex-col gap-2 relative overflow-hidden">
       {/* Premium Header */}
       <MapHeader
         selectedCommodity={selectedCommodity}
@@ -194,7 +194,7 @@ const MapComponent = () => {
 
       <div className="flex-1 flex flex-col lg:flex-row gap-4 relative min-h-0">
         {/* Main Map Visualizer */}
-        <div className={`transition-all duration-500 ease-in-out ${selectedRegion ? 'lg:flex-[1.5]' : 'flex-1'} h-[400px] lg:h-full lg:max-h-[780px]`}>
+        <div className={`transition-all duration-500 ease-in-out ${selectedRegion ? 'lg:flex-[1.5]' : 'flex-1'} h-[400px] lg:h-full`}>
           <MapVisualizer
             geoData={enrichedGeoData}
             selectedRegion={selectedRegion}

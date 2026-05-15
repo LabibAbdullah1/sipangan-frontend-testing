@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, Loader2, Package } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, Package, Calendar, Search } from 'lucide-react';
 import AdminModal from './AdminModal';
 import CustomAlert from '../../../components/CustomAlert';
 import { commodityService } from '../../../api/services';
@@ -9,6 +9,11 @@ const CommodityTable = ({ commodities, loading, onRefresh }) => {
   const [currentCommodity, setCurrentCommodity] = useState(null);
   const [formData, setFormData] = useState({ name: '', unit: 'kg' });
   const [submitting, setSubmitting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
   // Alert State
   const [alertConfig, setAlertConfig] = useState({
@@ -103,83 +108,158 @@ const CommodityTable = ({ commodities, loading, onRefresh }) => {
     });
   };
 
+  const filteredCommodities = commodities.filter(c => 
+    c.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Pagination Logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredCommodities.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredCommodities.length / itemsPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h2 className="text-xl font-bold text-white flex items-center gap-2">
+    <div className="space-y-4">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+        <h2 className="text-xl font-bold text-white flex items-center gap-2 shrink-0">
           <Package className="text-emerald-500" size={20} />
           Commodity Catalog
         </h2>
-        <button
-          onClick={() => handleOpenModal()}
-          className="flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-500/20 active:scale-95 w-full sm:w-auto"
-        >
-          <Plus size={18} /> Add Commodity
-        </button>
+        
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full xl:w-auto">
+          {/* Matching filter container style from PriceTable */}
+          <div className="flex flex-col sm:flex-row items-stretch gap-2 p-1 bg-white/5 border border-white/5 rounded-2xl w-full md:w-auto">
+            <div className="relative w-full sm:w-80">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+              <input
+                type="text"
+                placeholder="Search commodity name..."
+                className="w-full bg-transparent border-none pl-12 pr-4 py-2.5 text-sm text-white placeholder:text-gray-600 focus:outline-none"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <button
+            onClick={() => handleOpenModal()}
+            className="flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-500/20 active:scale-95 shrink-0"
+          >
+            <Plus size={18} /> Add Commodity
+          </button>
+        </div>
       </div>
 
-      <div className="bg-white/5 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden shadow-xl">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left min-w-[500px]">
-          <thead className="bg-gray-900/50 border-b border-gray-800">
-            <tr>
-              <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">ID</th>
-              <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">Name</th>
-              <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">Unit</th>
-              <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-800">
-            {loading ? (
+      <div className="bg-white/5 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden shadow-xl flex flex-col">
+        <div className="overflow-x-auto flex-1">
+          <table className="w-full text-left">
+            <thead className="bg-gray-900/50 border-b border-gray-800">
               <tr>
-                <td colSpan="4" className="px-6 py-12 text-center">
-                  <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
-                    <span className="text-gray-500 text-sm font-medium">Synchronizing Catalog...</span>
-                  </div>
-                </td>
+                <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest w-[180px]">Date</th>
+                <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">Name</th>
+                <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest text-right w-[150px]">Unit</th>
+                <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest text-right w-[120px]">Actions</th>
               </tr>
-            ) : commodities.length > 0 ? (
-              commodities.map((item) => (
-                <tr key={item.id} className="group hover:bg-white/5 transition-colors">
-                  <td className="px-6 py-4 text-gray-500 font-mono text-xs">#{item.id}</td>
-                  <td className="px-6 py-4">
-                    <span className="text-white font-bold tracking-tight">{item.name}</span>
-                  </td>
-                  <td className="px-6 py-4 text-gray-400 font-medium lowercase">{item.unit || 'kg'}</td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => handleOpenModal(item)}
-                        className="p-2 text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
-                        title="Edit"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                        title="Delete"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+            </thead>
+            <tbody className="divide-y divide-gray-800">
+              {loading ? (
+                <tr>
+                  <td colSpan="4" className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+                      <span className="text-gray-500 text-sm font-medium">Synchronizing Catalog...</span>
                     </div>
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="4" className="px-6 py-12 text-center text-gray-500">
-                  No commodities found. Start by adding a new one.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+              ) : currentItems.length > 0 ? (
+                currentItems.map((item) => (
+                  <tr key={item.id} className="group hover:bg-white/5 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2 text-gray-400 text-sm font-medium">
+                        <Calendar size={14} className="text-gray-600" />
+                        {new Date(item.created_at || item.updated_at || Date.now()).toLocaleDateString('id-ID')}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-white font-bold tracking-tight">{item.name}</span>
+                    </td>
+                    <td className="px-6 py-4 text-gray-400 font-medium text-right lowercase">{item.unit || 'kg'}</td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => handleOpenModal(item)}
+                          className="p-2 text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                          title="Edit"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" className="px-6 py-12 text-center text-gray-500">
+                    No commodities found. Start by adding a new one.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
 
-    <AdminModal
+        {/* Pagination UI - Matches PriceTable */}
+        {!loading && filteredCommodities.length > itemsPerPage && (
+          <div className="px-6 py-4 border-t border-white/5 bg-gray-900/30 flex items-center justify-between">
+            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">
+              Showing <span className="text-white">{indexOfFirstItem + 1}</span> to <span className="text-white">{Math.min(indexOfLastItem, filteredCommodities.length)}</span> of <span className="text-white">{filteredCommodities.length}</span> items
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => paginate(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="p-2 text-gray-500 hover:text-white disabled:opacity-30 transition-colors"
+              >
+                Previous
+              </button>
+              <div className="flex items-center gap-1">
+                {[...Array(totalPages)].map((_, i) => (
+                  <button
+                    key={i + 1}
+                    onClick={() => paginate(i + 1)}
+                    className={`
+                      w-8 h-8 rounded-lg text-xs font-black transition-all
+                      ${currentPage === i + 1 
+                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' 
+                        : 'text-gray-500 hover:bg-white/5 hover:text-white'}
+                    `}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => paginate(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className="p-2 text-gray-500 hover:text-white disabled:opacity-30 transition-colors"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <AdminModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={currentCommodity ? 'Edit Commodity' : 'New Commodity'}

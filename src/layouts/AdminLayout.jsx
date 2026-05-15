@@ -32,8 +32,8 @@ const AdminLayout = () => {
   const userFullname = localStorage.getItem('userFullname') || 'Administrator';
 
   const navItems = [
-    { path: '/admin/manage', label: 'Kelola Data Pangan', icon: Database, roles: ['super_admin', 'admin', 'operator'] },
     { path: '/admin/map', label: 'Peta Interaktif', icon: Map, roles: ['super_admin', 'admin', 'operator'] },
+    { path: '/admin/manage', label: 'Kelola Data Pangan', icon: Database, roles: ['super_admin', 'admin', 'operator'] },
     { path: '/admin/users', label: 'Kelola Admin', icon: ShieldCheck, roles: ['super_admin', 'admin'] },
     { path: '/admin/logs', label: 'Log Aktivitas', icon: History, roles: ['super_admin', 'admin'] },
   ].filter(item => item.roles.includes(userRole));
@@ -147,7 +147,7 @@ const AdminLayout = () => {
           </div>
         </header>
 
-        <div className="flex-1 p-4 lg:p-10 overflow-y-auto custom-scrollbar">
+        <div className={`flex-1 flex flex-col min-h-0 ${location.pathname === '/admin/map' ? 'p-6 overflow-hidden' : 'p-4 lg:p-10 overflow-y-auto custom-scrollbar'}`}>
           <Outlet />
         </div>
       </main>

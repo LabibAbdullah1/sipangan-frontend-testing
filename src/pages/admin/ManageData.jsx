@@ -57,7 +57,7 @@ const ManageData = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom duration-700">
+    <div className="max-w-6xl space-y-8 animate-in fade-in slide-in-from-bottom duration-700 pb-20">
       {/* Page Header */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2 text-xs font-black text-gray-500 uppercase tracking-[0.3em]">
@@ -117,14 +117,14 @@ const ManageData = () => {
             }}
           >
             {activeTab === 'commodities' ? (
-              <CommodityTable 
-                commodities={commodities} 
-                loading={loading} 
-                onRefresh={fetchCommodities} 
+              <CommodityTable
+                commodities={commodities}
+                loading={loading}
+                onRefresh={fetchCommodities}
               />
             ) : (
-              <PriceTable 
-                commodities={commodities} 
+              <PriceTable
+                commodities={commodities}
               />
             )}
           </motion.div>
