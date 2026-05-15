@@ -39,7 +39,7 @@ const PriceSidebar = ({ region, status, currentPrice, trend, prices, isLoading, 
   const predictedPrice = firstPrediction ? firstPrediction.price : 0;
 
   return (
-    <div className="w-full lg:w-[450px] bg-gray-900/40 backdrop-blur-xl border border-gray-800 rounded-3xl shadow-2xl flex flex-col animate-in slide-in-from-right duration-500 ease-out overflow-hidden h-auto lg:h-full">
+    <div className="w-full lg:w-[450px] bg-gray-900/40 backdrop-blur-xl border border-gray-800 rounded-3xl shadow-2xl flex flex-col animate-in slide-in-from-right duration-500 ease-out overflow-hidden h-full">
       {/* Header */}
       <div className="p-6 flex items-center justify-between border-b border-gray-800/50">
         <div>

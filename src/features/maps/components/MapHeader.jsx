@@ -8,7 +8,7 @@ const MapHeader = ({ selectedCommodity, onCommodityChange, commodities = [] }) =
     : [{ label: "Beras Medium", value: "Beras Medium" }];
 
   return (
-    <div className="flex flex-col md:flex-row items-start md:items-center justify-between bg-gray-900/60 backdrop-blur-xl p-3 border border-gray-800/50 rounded-2xl shadow-2xl gap-4 relative z-50">
+    <div className="flex flex-col md:flex-row items-start md:items-center justify-between bg-gray-900/60 backdrop-blur-xl p-3 border border-gray-800/50 rounded-2xl shadow-2xl gap-4 relative z-[1001]">
       <div className="flex items-center gap-4">
         <div className="p-2.5 bg-emerald-500/20 rounded-xl border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.1)]">
           <MapIcon className="text-emerald-400" size={20} />

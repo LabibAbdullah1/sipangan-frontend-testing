@@ -29,7 +29,7 @@ const RegionList = ({ regions, onRegionClick, selectedCommodity }) => {
 
 
   return (
-    <div className="w-full bg-gray-900/40 backdrop-blur-xl border border-gray-800 rounded-3xl shadow-2xl flex flex-col h-auto lg:h-full lg:overflow-hidden animate-in fade-in slide-in-from-right duration-700">
+    <div className="w-full bg-gray-900/40 backdrop-blur-xl border border-gray-800 rounded-3xl shadow-2xl flex flex-col h-full overflow-hidden animate-in fade-in slide-in-from-right duration-700">
 
       <div className="p-4 border-b border-gray-800/50 space-y-3">
         <div>
@@ -51,7 +51,7 @@ const RegionList = ({ regions, onRegionClick, selectedCommodity }) => {
         </div>
       </div>
 
-      <div className="flex-1 lg:overflow-y-auto min-h-0 custom-scrollbar p-4 space-y-2">
+      <div className="flex-1 overflow-y-auto min-h-0 custom-scrollbar p-4 space-y-2">
 
         {filteredRegions.length > 0 ? (
           filteredRegions.map((region) => (

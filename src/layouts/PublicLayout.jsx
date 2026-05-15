@@ -39,7 +39,7 @@ const PublicLayout = () => {
             >
               <Menu size={22} />
             </button>
-            
+
             <Link to="/" className="flex items-center gap-2.5">
               <div className="w-9 h-9 bg-emerald-500 rounded-xl flex items-center justify-center font-black text-white shadow-lg shadow-emerald-500/20">
                 S
@@ -71,16 +71,16 @@ const PublicLayout = () => {
 
           <div className="flex items-center gap-4">
             {localStorage.getItem('accessToken') ? (
-              <Link 
-                to="/admin/manage" 
+              <Link
+                to="/admin/manage"
                 className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-emerald-500/20 hover:scale-[1.05]"
               >
                 <Shield size={14} />
                 Panel Admin
               </Link>
             ) : (
-              <Link 
-                to="/admin/login" 
+              <Link
+                to="/admin/login"
                 className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-xs font-black uppercase tracking-widest text-gray-300 hover:text-white rounded-xl transition-all border border-white/5 hover:border-white/10"
               >
                 <Shield size={14} className="text-emerald-500" />
@@ -161,7 +161,7 @@ const PublicLayout = () => {
       </aside>
 
 
-      <main className={`flex-1 flex flex-col min-h-0 w-full max-w-[1600px] mx-auto px-6 ${location.pathname === '/map' ? 'py-0 lg:overflow-hidden' : 'py-8'}`}>
+      <main className={`flex-1 flex flex-col min-h-0 w-full max-w-[1600px] mx-auto ${location.pathname === '/map' ? 'px-2 py-2 lg:px-6 py-0 lg:overflow-hidden' : 'px-6 py-8'}`}>
         <Outlet />
       </main>
     </div>

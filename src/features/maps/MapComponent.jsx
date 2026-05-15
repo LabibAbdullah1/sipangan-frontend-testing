@@ -205,15 +205,10 @@ const MapComponent = () => {
 
 
         {/* Analytics Sidebar or Region List */}
-        <div className={`
-          ${selectedRegion
-            ? 'w-full h-auto lg:w-[450px] lg:h-full'
-            : 'w-full lg:w-[450px] h-auto lg:h-full'}
-          flex flex-col relative
-        `}>
+        <div className="w-full h-[650px] lg:h-full lg:w-[450px] flex flex-col relative min-h-0 shrink-0">
 
           {selectedRegion ? (
-            <div className="animate-in slide-in-from-right duration-500 flex flex-col">
+            <div className="flex-1 flex flex-col min-h-0 animate-in slide-in-from-right duration-500">
               <PriceSidebar
                 region={selectedRegion}
                 status={regionList.find(r => r.name === selectedRegion)?.status}
@@ -228,7 +223,7 @@ const MapComponent = () => {
 
             </div>
           ) : (
-            <div className="h-full flex flex-col overflow-hidden">
+            <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
               <RegionList
                 regions={regionList}
                 selectedCommodity={selectedCommodity}
