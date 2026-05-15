@@ -4,6 +4,8 @@ import { userService } from '../../api/services';
 import { UserPlus, Trash2, Shield, User as UserIcon, Loader2, AlertCircle, CheckCircle2, ChevronDown, Edit2, Search, ChevronRight, Users, ShieldCheck, UserCog } from 'lucide-react';
 
 const UserManagement = () => {
+  const currentUserRole = localStorage.getItem('userRole') || 'operator';
+
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -13,7 +15,7 @@ const UserManagement = () => {
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState('super_admin');
+  const [activeTab, setActiveTab] = useState(currentUserRole === 'super_admin' ? 'super_admin' : 'operator');
   const [direction, setDirection] = useState(0);
 
   const [formData, setFormData] = useState({
@@ -23,8 +25,6 @@ const UserManagement = () => {
     role: 'operator'
   });
 
-  const currentUserRole = localStorage.getItem('userRole') || 'operator';
-
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -33,7 +33,14 @@ const UserManagement = () => {
     try {
       setLoading(true);
       const response = await userService.getAll();
-      setUsers(response.data.users || []);
+      let fetchedUsers = response.data.users || [];
+      
+      // Filter users if current user is admin to protect superior data
+      if (currentUserRole === 'admin') {
+        fetchedUsers = fetchedUsers.filter(u => u.role === 'operator');
+      }
+      
+      setUsers(fetchedUsers);
     } catch (err) {
       setError('Gagal mengambil data pengguna.');
     } finally {
@@ -108,11 +115,17 @@ const UserManagement = () => {
   const admins = filteredUsers.filter(u => u.role === 'admin');
   const operators = filteredUsers.filter(u => u.role === 'operator');
 
-  const tabs = [
+  const allTabs = [
     { id: 'super_admin', label: 'Super Admin', icon: ShieldCheck, color: 'text-purple-500', data: superAdmins },
     { id: 'admin', label: 'Admin', icon: Shield, color: 'text-blue-500', data: admins },
     { id: 'operator', label: 'Operator', icon: UserCog, color: 'text-emerald-500', data: operators },
   ];
+
+  const tabs = allTabs.filter(tab => {
+    if (currentUserRole === 'super_admin') return true;
+    if (currentUserRole === 'admin') return tab.id === 'operator';
+    return false;
+  });
 
   const handleTabChange = (tabId) => {
     const currentIndex = tabs.findIndex(t => t.id === activeTab);

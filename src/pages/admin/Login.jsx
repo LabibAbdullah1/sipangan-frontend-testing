@@ -22,22 +22,26 @@ const Login = () => {
       if (response.data?.accessToken) {
         const { accessToken, refreshToken } = response.data;
         
-        // Get role from response body or decode from JWT
+        // Get role and fullname from response body or decode from JWT
         let role = response.data.role;
+        let fullname = response.data.fullname;
         
-        if (!role) {
+        if (!role || !fullname) {
           try {
             const payload = JSON.parse(atob(accessToken.split('.')[1]));
-            role = payload.role || 'operator';
+            if (!role) role = payload.role || 'operator';
+            if (!fullname) fullname = payload.fullname || payload.username || 'Administrator';
           } catch (e) {
             console.error('Failed to decode token:', e);
-            role = 'operator';
+            if (!role) role = 'operator';
+            if (!fullname) fullname = 'Administrator';
           }
         }
 
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('refreshToken', refreshToken);
         localStorage.setItem('userRole', role);
+        localStorage.setItem('userFullname', fullname);
         navigate('/admin/manage');
       } else {
         setError('Respons server tidak valid.');

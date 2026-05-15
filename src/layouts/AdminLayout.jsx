@@ -23,11 +23,13 @@ const AdminLayout = () => {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('userRole');
+      localStorage.removeItem('userFullname');
       navigate('/');
     }
   };
 
   const userRole = localStorage.getItem('userRole') || 'operator';
+  const userFullname = localStorage.getItem('userFullname') || 'Administrator';
 
   const navItems = [
     { path: '/admin/manage', label: 'Kelola Data Pangan', icon: Database, roles: ['super_admin', 'admin', 'operator'] },
@@ -113,7 +115,7 @@ const AdminLayout = () => {
               <User size={14} className="text-white" />
             </div>
             <div className="flex flex-col overflow-hidden">
-              <span className="text-xs font-bold text-white truncate">Administrator</span>
+              <span className="text-xs font-bold text-white truncate">{userFullname}</span>
               <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">{userRole.replace('_', ' ')}</span>
             </div>
           </div>
