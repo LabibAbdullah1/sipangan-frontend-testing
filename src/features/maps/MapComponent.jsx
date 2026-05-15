@@ -194,7 +194,7 @@ const MapComponent = () => {
 
       <div className="flex-1 flex flex-col lg:flex-row gap-4 relative min-h-0">
         {/* Main Map Visualizer */}
-        <div className={`transition-all duration-500 ease-in-out ${selectedRegion ? 'lg:flex-[1.5]' : 'flex-1'} h-[400px] lg:h-full`}>
+        <div className={`transition-all duration-500 ease-in-out ${selectedRegion ? 'lg:flex-[1.5]' : 'flex-1'} aspect-square lg:aspect-auto h-auto lg:h-full shrink-0`}>
           <MapVisualizer
             geoData={enrichedGeoData}
             selectedRegion={selectedRegion}
@@ -208,7 +208,7 @@ const MapComponent = () => {
         <div className={`
           ${selectedRegion
             ? 'w-full h-auto lg:w-[450px] lg:h-full'
-            : 'w-full lg:w-[450px] h-[500px] lg:h-full overflow-hidden'}
+            : 'w-full lg:w-[450px] h-auto lg:h-full'}
           flex flex-col relative
         `}>
 
