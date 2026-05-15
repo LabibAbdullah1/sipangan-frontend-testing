@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { LogOut, Database, User, Map, Menu, X, ShieldCheck, History } from 'lucide-react';
 import { authService } from '../api/services';
+import AlertNotification from '../components/AlertNotification';
 
 const AdminLayout = () => {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ const AdminLayout = () => {
   ].filter(item => item.roles.includes(userRole));
 
   return (
-    <div className="h-screen bg-[#020617] text-gray-100 flex font-sans selection:bg-emerald-500/30 relative overflow-hidden">
+    <div className={`bg-[#020617] text-gray-100 flex font-sans selection:bg-emerald-500/30 relative ${location.pathname === '/admin/map' ? 'lg:h-screen lg:overflow-hidden min-h-screen overflow-x-hidden' : 'h-screen overflow-hidden'}`}>
       {/* Shared Background Texture & Gradients */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(16,185,129,0.1),transparent_50%)]"></div>
@@ -131,8 +132,8 @@ const AdminLayout = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col relative z-10 h-full overflow-hidden">
-        <header className="h-20 border-b border-white/5 flex items-center justify-between px-6 lg:px-10 bg-gray-950/40 backdrop-blur-xl shrink-0">
+      <main className={`flex-1 flex flex-col relative z-10 ${location.pathname === '/admin/map' ? 'lg:h-full lg:overflow-hidden' : 'h-full overflow-hidden'}`}>
+        <header className="h-20 border-b border-white/5 flex items-center justify-between px-6 lg:px-10 bg-gray-950/40 backdrop-blur-xl shrink-0 relative z-[9999]">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setIsSidebarOpen(true)}
@@ -145,9 +146,12 @@ const AdminLayout = () => {
               <span className="text-xs font-black text-gray-400 uppercase tracking-widest truncate">System Status: <span className="text-emerald-500">Operational</span></span>
             </div>
           </div>
+          <div className="flex items-center gap-4">
+            <AlertNotification />
+          </div>
         </header>
 
-        <div className={`flex-1 flex flex-col min-h-0 ${location.pathname === '/admin/map' ? 'p-6 overflow-hidden' : 'p-4 lg:p-10 overflow-y-auto custom-scrollbar'}`}>
+        <div className={`flex-1 flex flex-col min-h-0 ${location.pathname === '/admin/map' ? 'px-2 py-2 lg:px-6 lg:py-0 lg:overflow-hidden' : 'p-4 lg:p-10 overflow-y-auto custom-scrollbar'}`}>
           <Outlet />
         </div>
       </main>

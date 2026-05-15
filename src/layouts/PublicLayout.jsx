@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Map, LayoutDashboard, Menu, X, Shield, ChevronRight } from 'lucide-react';
+import AlertNotification from '../components/AlertNotification';
 
 const PublicLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -70,10 +71,11 @@ const PublicLayout = () => {
           </div>
 
           <div className="flex items-center gap-4">
+            <AlertNotification />
             {localStorage.getItem('accessToken') ? (
               <Link
                 to="/admin/manage"
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-emerald-500/20 hover:scale-[1.05]"
+                className="hidden md:flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-emerald-500/20 hover:scale-[1.05]"
               >
                 <Shield size={14} />
                 Panel Admin
@@ -81,7 +83,7 @@ const PublicLayout = () => {
             ) : (
               <Link
                 to="/admin/login"
-                className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-xs font-black uppercase tracking-widest text-gray-300 hover:text-white rounded-xl transition-all border border-white/5 hover:border-white/10"
+                className="hidden md:flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-xs font-black uppercase tracking-widest text-gray-300 hover:text-white rounded-xl transition-all border border-white/5 hover:border-white/10"
               >
                 <Shield size={14} className="text-emerald-500" />
                 Admin Access

@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
   body {
     @apply bg-[#0a0a0a] text-gray-100 font-sans antialiased;
   }
@@ -107,3 +110,11 @@
   scrollbar-width: none;  /* Firefox */
 }
 
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
