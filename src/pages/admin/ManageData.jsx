@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Database, Package, TrendingUp, ChevronRight } from 'lucide-react';
-import { commodityService } from '../../api/services';
+import { Database, Package, TrendingUp, ChevronRight, CloudRain, Loader2 } from 'lucide-react';
+import { commodityService, weatherService } from '../../api/services';
 import CommodityTable from './components/CommodityTable';
 import PriceTable from './components/PriceTable';
 
@@ -10,6 +10,7 @@ const ManageData = () => {
   const [direction, setDirection] = useState(0); // 1 for right, -1 for left
   const [commodities, setCommodities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [syncingWeather, setSyncingWeather] = useState(false);
 
   const tabs = [
     { id: 'prices', label: 'Price Records', icon: TrendingUp, color: 'text-blue-500' },
@@ -39,6 +40,19 @@ const ManageData = () => {
     fetchCommodities();
   }, []);
 
+  const handleSyncWeather = async () => {
+    try {
+      setSyncingWeather(true);
+      await weatherService.syncWeather();
+      alert('Weather data synchronized successfully!');
+    } catch (error) {
+      console.error('Failed to sync weather:', error);
+      alert('Failed to synchronize weather data. Please try again.');
+    } finally {
+      setSyncingWeather(false);
+    }
+  };
+
   const variants = {
     enter: (direction) => ({
       x: direction > 0 ? 50 : -50,
@@ -63,10 +77,21 @@ const ManageData = () => {
         <div className="flex items-center gap-2 text-xs font-black text-gray-500 uppercase tracking-[0.3em]">
           Admin <ChevronRight size={12} /> Data Management
         </div>
-        <h1 className="text-4xl font-black text-white tracking-tight flex items-center gap-3">
-          <Database className="text-emerald-500" size={32} />
-          Kelola Data Pangan
-        </h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-4xl font-black text-white tracking-tight flex items-center gap-3">
+            <Database className="text-emerald-500" size={32} />
+            Kelola Data Pangan
+          </h1>
+          
+          <button
+            onClick={handleSyncWeather}
+            disabled={syncingWeather}
+            className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/20"
+          >
+            {syncingWeather ? <Loader2 className="animate-spin" size={18} /> : <CloudRain size={18} />}
+            {syncingWeather ? 'Syncing...' : 'Sync Weather'}
+          </button>
+        </div>
         <p className="text-gray-400 font-medium">
           Manage commodity inventory and maintain historical price data across East Java.
         </p>

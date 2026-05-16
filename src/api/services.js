@@ -48,3 +48,8 @@ export const userService = {
 export const logService = {
   getLogs: (params) => axiosClient.get('logs', { params }),
 };
+
+export const weatherService = {
+  getWeatherByRegion: (regionId) => axiosClient.get(`weather/region/${regionId}`),
+  syncWeather: () => axiosClient.post('weather/sync'),
+};

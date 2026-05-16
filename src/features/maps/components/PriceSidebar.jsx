@@ -4,8 +4,9 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, 
   ResponsiveContainer, AreaChart, Area
 } from 'recharts';
+import WeatherWidget from './WeatherWidget';
 
-const PriceSidebar = ({ region, status, currentPrice, trend, prices, isLoading, selectedRange, onRangeChange, onClose }) => {
+const PriceSidebar = ({ region, regionId, status, currentPrice, trend, prices, isLoading, selectedRange, onRangeChange, onClose }) => {
   if (!region) return null;
 
   const getStatusColor = (s) => {
@@ -105,6 +106,8 @@ const PriceSidebar = ({ region, status, currentPrice, trend, prices, isLoading, 
               </div>
             )}
           </div>
+
+        {regionId && <WeatherWidget regionId={regionId} />}
 
         <AnimatePresence mode="wait">
           {isLoading && prices.length === 0 ? (

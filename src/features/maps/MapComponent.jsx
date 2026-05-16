@@ -110,6 +110,7 @@ const MapComponent = () => {
               previousPrice: priceData?.previous_price || 0,
               trend: priceData?.trend || 'stable',
               percentChange: priceData?.percent_change || 0,
+              regionId: priceData?.region_id || null,
               fullRegionName: priceData?.region_name || name,
               fullCommodityName: priceData?.commodity_name || selectedCommodity
             }
@@ -138,6 +139,7 @@ const MapComponent = () => {
     if (!enrichedGeoData?.features) return [];
     const allRegions = enrichedGeoData.features.map(f => ({
       name: f.properties.fullRegionName || f.properties.name || f.properties.NAME,
+      regionId: f.properties.regionId,
       commodity: f.properties.fullCommodityName || selectedCommodity,
       status: f.properties.status,
       price: f.properties.price
@@ -211,6 +213,7 @@ const MapComponent = () => {
             <div className="flex-1 flex flex-col min-h-0 animate-in slide-in-from-right duration-500">
               <PriceSidebar
                 region={selectedRegion}
+                regionId={regionList.find(r => r.name === selectedRegion)?.regionId}
                 status={regionList.find(r => r.name === selectedRegion)?.status}
                 currentPrice={regionList.find(r => r.name === selectedRegion)?.price}
                 trend={regionList.find(r => r.name === selectedRegion)?.trend}
